@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Tồn kho Hiện tại";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Tra cứu Tồn kho Hiện tại</h4>
+        <p class="text-muted fs-7 mb-0">Theo dõi tồn thực tế, khả dụng & chỉ số tồn dưới mức tối thiểu (Min Stock)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Stock/ByLocation" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-border-all me-1"></i> Xem theo Vị trí Rack Grid</a>
+        <a href="/Stock/ByBatch" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-barcode me-1"></i> Xem theo Lô</a>
+    </div>
+</div>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>SKU</th>
+                <th>Sản phẩm</th>
+                <th>Danh mục</th>
+                <th>ĐVT</th>
+                <th class="text-end">Tồn thực tế</th>
+                <th class="text-end">Khả dụng</th>
+                <th class="text-end">Định mức Min</th>
+                <th>Cảnh báo Min Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="tr-low-stock">
+                <td class="fw-bold">SKU-FOOD-001</td>
+                <td>Sữa tươi tiệt trùng 1L</td>
+                <td>Thực phẩm</td>
+                <td>Hộp</td>
+                <td class="text-end fw-bold">15</td>
+                <td class="text-end fw-bold text-success">15</td>
+                <td class="text-end text-muted">50</td>
+                <td><span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>Thiếu 35 (Cảnh báo đỏ)</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">SKU-BEV-009</td>
+                <td>Nước ép cam 500ml</td>
+                <td>Đồ uống</td>
+                <td>Chai</td>
+                <td class="text-end fw-bold">150</td>
+                <td class="text-end fw-bold text-success">120</td>
+                <td class="text-end text-muted">30</td>
+                <td><span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>An toàn</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

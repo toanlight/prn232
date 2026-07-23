@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Chi tiết Phiếu Nhập Kho GRN-2026-0042";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Phiếu Nhập Kho: GRN-2026-0042</h4>
+        <p class="text-muted fs-7 mb-0">Trạng thái: <span class="badge badge-pending">Chờ phê duyệt L1 - Trưởng kho</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Grn" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Stepper Approval Timeline -->
+    <div class="col-12">
+        <div class="card-wms p-4">
+            <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fa-solid fa-timeline me-2 text-primary"></i>Quy trình Phê duyệt Chứng từ (Approval Stepper)</h6>
+            
+            <div class="d-flex justify-content-around align-items-center py-2 text-center fs-7">
+                <div class="flex-grow-1">
+                    <div class="rounded-circle bg-success text-white mx-auto d-flex align-items-center justify-content-center mb-1" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="fw-semibold">1. Lập & Nộp phiếu</div>
+                    <div class="text-muted fs-8">Nguyễn Văn A (Nhân viên kho)<br />23/07/2026 14:30</div>
+                </div>
+
+                <div class="border-top flex-grow-1" style="border-width: 2px !important; border-color: #F59E0B !important;"></div>
+
+                <div class="flex-grow-1">
+                    <div class="rounded-circle bg-warning text-white mx-auto d-flex align-items-center justify-content-center mb-1" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="fw-semibold text-warning">2. Phê duyệt L1 (Trưởng kho)</div>
+                    <div class="text-muted fs-8">Đang chờ xử lý...</div>
+                </div>
+
+                <div class="border-top flex-grow-1" style="border-width: 2px !important; border-color: #E2E8F0 !important;"></div>
+
+                <div class="flex-grow-1">
+                    <div class="rounded-circle bg-light text-muted border mx-auto d-flex align-items-center justify-content-center mb-1" style="width: 36px; height: 36px;">
+                        3
+                    </div>
+                    <div class="fw-semibold text-muted">3. Phê duyệt L2 (Giám đốc)</div>
+                    <div class="text-muted fs-8">Chưa đến lượt</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-wms p-4">
+    <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">Chi tiết dòng sản phẩm nhập kho</h6>
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>SKU</th>
+                <th>Tên sản phẩm</th>
+                <th>Số Lô</th>
+                <th>Hạn dùng</th>
+                <th class="text-end">Số lượng</th>
+                <th>Vị trí Bin được gán</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold">SKU-FOOD-001</td>
+                <td>Sữa tươi tiệt trùng 1L</td>
+                <td>LOT-2026-0815</td>
+                <td>15/08/2026</td>
+                <td class="text-end fw-bold">100</td>
+                <td><span class="badge bg-light text-primary border">WH1-ZA-R1-S1-B01</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

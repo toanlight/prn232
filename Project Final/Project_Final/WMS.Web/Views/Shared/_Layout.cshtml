@@ -1,48 +1,205 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WMS.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - WMS Management System</title>
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Enterprise CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WMS.Web.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WMS.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <div id="wrapper">
+        <!-- ──── Sidebar Navigation ──── -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-boxes-packing text-info me-2 fs-4"></i>
+                <span>WMS ENTERPRISE</span>
             </div>
+
+            <ul class="list-unstyled components">
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <a href="/Dashboard">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <div class="sidebar-category">Quản lý kho</div>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouses" ? "active" : "")">
+                    <a href="/Warehouses">
+                        <i class="fa-solid fa-warehouse"></i>
+                        <span>Sơ đồ Kho & Bins</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")">
+                    <a href="/Products">
+                        <i class="fa-solid fa-box-archive"></i>
+                        <span>Sản phẩm & Danh mục</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Batches" ? "active" : "")">
+                    <a href="/Batches">
+                        <i class="fa-solid fa-barcode"></i>
+                        <span>Quản lý Lô & HSD</span>
+                    </a>
+                </li>
+
+                <div class="sidebar-category">Nghiệp vụ kho</div>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "PurchaseOrders" ? "active" : "")">
+                    <a href="/PurchaseOrders">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span>Đơn mua hàng (PO)</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Grn" ? "active" : "")">
+                    <a href="/Grn">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        <span>Nhập kho (GRN)</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Gdn" ? "active" : "")">
+                    <a href="/Gdn">
+                        <i class="fa-solid fa-dolly"></i>
+                        <span>Xuất kho (GDN)</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Transfers" ? "active" : "")">
+                    <a href="/Transfers">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Chuyển kho</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "StockCounts" ? "active" : "")">
+                    <a href="/StockCounts">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>Kiểm kê & Điều chỉnh</span>
+                    </a>
+                </li>
+
+                <div class="sidebar-category">Đối tác & Phê duyệt</div>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "active" : "")">
+                    <a href="/Suppliers">
+                        <i class="fa-solid fa-truck-field"></i>
+                        <span>Nhà cung cấp</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "active" : "")">
+                    <a href="/Customers">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Khách hàng</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Approvals" ? "active" : "")">
+                    <a href="/Approvals">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                        <span>Hộp thư Phê duyệt</span>
+                    </a>
+                </li>
+
+                <div class="sidebar-category">Báo cáo & Hệ thống</div>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")">
+                    <a href="/Reports">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Báo cáo Thống kê</span>
+                    </a>
+                </li>
+                <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" ? "active" : "")">
+                    <a href="/Admin">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Quản trị Hệ thống</span>
+                    </a>
+                </li>
+            </ul>
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+        <!-- ──── Main Content Area ──── -->
+        <div id="content">
+            <!-- ──── Top Header ──── -->
+            <header class="navbar-top">
+                <div class="d-flex align-items-center">
+                    <button type="button" id="sidebarCollapse" class="btn btn-light d-lg-none me-2">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <nav aria-label="breadcrumb" class="d-none d-md-block">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-secondary">WMS</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                        </ol>
+                    </nav>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Language Switcher -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-globe me-1"></i> <span id="current-lang">VI</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="javascript:WMS.setLanguage('vi')">Tiếng Việt</a></li>
+                            <li><a class="dropdown-item" href="javascript:WMS.setLanguage('en')">English</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Notification Bell -->
+                    <a href="/Admin/Notifications" class="position-relative text-secondary fs-5 me-2">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                            3
+                        </span>
+                    </a>
+
+                    <!-- User Profile Dropdown -->
+                    <div class="dropdown">
+                        <div class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown">
+                            <div class="avatar-circle">
+                                @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "A")
+                            </div>
+                            <div class="d-none d-sm-block text-start">
+                                <div class="fw-semibold fs-7 leading-tight">@(User.Identity?.Name ?? "Admin User")</div>
+                                <div class="text-muted fs-8">Trưởng kho</div>
+                            </div>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item" href="/Auth/Profile"><i class="fa-regular fa-user me-2"></i> Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item" href="/Auth/ChangePassword"><i class="fa-solid fa-key me-2"></i> Đổi mật khẩu</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/Auth/Logout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ──── Page Main Content ──── -->
+            <main class="p-4 flex-grow-1">
+                @RenderBody()
+            </main>
+
+            <!-- ──── Footer ──── -->
+            <footer class="bg-white border-top py-3 px-4 text-center text-muted fs-8">
+                <div>&copy; 2026 WMS Enterprise Warehouse Management System. All rights reserved.</div>
+            </footer>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - WMS.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Bootstrap 5.3 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Site JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

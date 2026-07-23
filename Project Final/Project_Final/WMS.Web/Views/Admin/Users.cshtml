@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Quản lý Người dùng System";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Người dùng & Phân quyền</h4>
+        <p class="text-muted fs-7 mb-0">Thêm người dùng mới, gán vai trò (Roles) & phân quyền truy cập hệ thống</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3 fw-semibold" onclick="WMS.showToast('Mở modal tạo tài khoản', 'info')"><i class="fa-solid fa-user-plus me-1"></i> Thêm Người dùng</button>
+</div>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Username</th>
+                <th>Họ và tên</th>
+                <th>Email</th>
+                <th>Vai trò (Roles)</th>
+                <th>Trạng thái</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold">admin</td>
+                <td>Quản trị viên Hệ thống</td>
+                <td>admin@wms.com.vn</td>
+                <td><span class="badge bg-danger me-1">ADMIN</span></td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-user-pen"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td class="fw-bold">manager01</td>
+                <td>Nguyễn Văn A (Trưởng Kho)</td>
+                <td>manager01@wms.com.vn</td>
+                <td><span class="badge bg-warning text-dark me-1">WH_MANAGER</span></td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-user-pen"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

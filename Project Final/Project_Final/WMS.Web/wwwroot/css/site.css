@@ -1,22 +1,202 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+:root {
+  --wms-primary: #1A3C5E;
+  --wms-primary-hover: #132E4A;
+  --wms-accent: #2E8BC0;
+  --wms-accent-light: #E6F4FA;
+  --wms-warning: #F59E0B;
+  --wms-danger: #EF4444;
+  --wms-success: #22C55E;
+  --wms-info: #3B82F6;
+  --wms-sidebar-width: 250px;
+  --wms-header-height: 60px;
+  --wms-bg-light: #F8FAFC;
+  --wms-card-border: #E2E8F0;
+  --wms-text-muted: #64748B;
 }
 
 body {
-  margin-bottom: 60px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--wms-bg-light);
+  color: #1E293B;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* ──── Layout Wrappers ──── */
+#wrapper {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+#sidebar {
+  min-width: var(--wms-sidebar-width);
+  max-width: var(--wms-sidebar-width);
+  background: var(--wms-primary);
+  color: #FFFFFF;
+  transition: all 0.3s;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+#sidebar .sidebar-header {
+  height: var(--wms-header-height);
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
+}
+
+#sidebar ul.components {
+  padding: 1rem 0;
+}
+
+#sidebar ul li a {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  color: #CBD5E1;
+  text-decoration: none;
+  transition: 0.2s;
+  border-left: 4px solid transparent;
+}
+
+#sidebar ul li a:hover,
+#sidebar ul li a.active {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--wms-accent);
+}
+
+#sidebar ul li a i {
+  margin-right: 0.75rem;
+  width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.sidebar-category {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94A3B8;
+  padding: 1.25rem 1.25rem 0.5rem;
+  font-weight: 600;
+}
+
+#content {
+  width: calc(100% - var(--wms-sidebar-width));
+  margin-left: var(--wms-sidebar-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ──── Top Header ──── */
+.navbar-top {
+  height: var(--wms-header-height);
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--wms-card-border);
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--wms-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ──── Cards & Widgets ──── */
+.card-wms {
+  border: 1px solid var(--wms-card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: #FFFFFF;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-kpi {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-kpi .kpi-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.kpi-blue { background: #E0F2FE; color: #0284C7; }
+.kpi-green { background: #DCFCE7; color: #16A34A; }
+.kpi-amber { background: #FEF3C7; color: #D97706; }
+.kpi-red { background: #FEE2E2; color: #DC2626; }
+
+/* ──── Badges & Color Coding ──── */
+.badge-draft { background-color: #6B7280; color: white; }
+.badge-pending { background-color: #F59E0B; color: white; }
+.badge-approved { background-color: #22C55E; color: white; }
+.badge-rejected { background-color: #EF4444; color: white; }
+.badge-cancelled { background-color: #9CA3AF; color: white; }
+.badge-completed { background-color: #3B82F6; color: white; }
+.badge-expired { background-color: #DC2626; color: white; }
+.badge-expiring { background-color: #F97316; color: white; }
+
+.tr-low-stock {
+  background-color: #FEF2F2 !important;
+}
+
+/* ──── Toast & Modals ──── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  #sidebar {
+    margin-left: calc(-1 * var(--wms-sidebar-width));
+  }
+  #sidebar.active {
+    margin-left: 0;
+  }
+  #content {
+    width: 100%;
+    margin-left: 0;
+  }
 }

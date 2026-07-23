@@ -1,0 +1,148 @@
+@{
+    ViewData["Title"] = "Lập Phiếu Nhập Kho (GRN)";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Lập Phiếu Nhập Kho (Create GRN)</h4>
+        <p class="text-muted fs-7 mb-0">Nhập thông tin chứng từ, khai báo chi tiết lô, HSD & chỉ định vị trí Bin lưu kho</p>
+    </div>
+    <a href="/Grn" class="btn btn-outline-secondary btn-sm px-3 fw-semibold">
+        <i class="fa-solid fa-arrow-left me-1"></i> Hủy & Quay lại
+    </a>
+</div>
+
+<form id="createGrnForm">
+    <!-- Panel 1: Header Information -->
+    <div class="card-wms p-4 mb-4">
+        <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="fa-solid fa-file-invoice me-2"></i>1. Thông tin chứng từ Nhập kho</h6>
+        
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Nhà cung cấp <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" required>
+                    <option value="">-- Chọn Nhà cung cấp --</option>
+                    <option value="1">Công ty TNHH THVL</option>
+                    <option value="2">Tập đoàn Thực phẩm Á Châu</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Kho nhận hàng <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" required>
+                    <option value="1">Kho Tổng Trung Tâm (WH-CENTRAL)</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Liên kết Đơn mua hàng (PO)</label>
+                <select class="form-select form-select-sm">
+                    <option value="">-- Nhập trực tiếp (Không có PO) --</option>
+                    <option value="101">PO-2026-0012 (Công ty THVL)</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Ngày thực nhận <span class="text-danger">*</span></label>
+                <input type="datetime-local" class="form-control form-control-sm" required value="2026-07-23T14:30" />
+            </div>
+            <div class="col-12 col-md-8">
+                <label class="form-label fs-7 fw-semibold">Ghi chú phiếu nhập</label>
+                <input type="text" class="form-control form-control-sm" placeholder="Nhập ghi chú cho thủ kho / người duyệt..." />
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel 2: Dynamic Lines Table -->
+    <div class="card-wms p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h6 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-list-check me-2"></i>2. Chi tiết Danh mục Sản phẩm Nhập kho</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" onclick="addRow()">
+                <i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle fs-7" id="grnLinesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 25%;">Sản phẩm (SKU)</th>
+                        <th style="width: 15%;">Số Lô (Lot No.)</th>
+                        <th style="width: 13%;">Ngày sản xuất</th>
+                        <th style="width: 13%;">Hạn sử dụng</th>
+                        <th style="width: 10%;">Số lượng</th>
+                        <th style="width: 20%;">Vị trí lưu kho (Bin Path)</th>
+                        <th style="width: 4%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select class="form-select form-select-sm" required>
+                                <option value="1">SKU-FOOD-001 | Sữa tươi 1L</option>
+                                <option value="2">SKU-BEV-009 | Nước ép cam 500ml</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="form-control form-control-sm" value="LOT-2026-0815" required /></td>
+                        <td><input type="date" class="form-control form-control-sm" value="2026-02-15" /></td>
+                        <td><input type="date" class="form-control form-control-sm" value="2026-08-15" required /></td>
+                        <td><input type="number" step="0.01" class="form-control form-control-sm text-end" value="100" required /></td>
+                        <td>
+                            <!-- Searchable Bin Path Selector -->
+                            <select class="form-select form-select-sm" required>
+                                <option value="1">WH1-ZA-R1-S1-B01 (Kho A - Kệ 1)</option>
+                                <option value="2">WH1-ZA-R1-S2-B02 (Kho A - Kệ 2)</option>
+                                <option value="3">WH1-ZB-R2-S1-B05 (Kho Cold - Kệ 2)</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary px-4 fw-semibold" onclick="WMS.showToast('Đã lưu bản nháp', 'info')">Lưu bản nháp</button>
+        <button type="button" class="btn btn-success px-4 fw-semibold" onclick="submitGrn()">
+            <i class="fa-solid fa-paper-plane me-1"></i> Gửi duyệt (Submit L1)
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    function addRow() {
+        const tableBody = document.querySelector('#grnLinesTable tbody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>
+                <select class="form-select form-select-sm" required>
+                    <option value="1">SKU-FOOD-001 | Sữa tươi 1L</option>
+                    <option value="2">SKU-BEV-009 | Nước ép cam 500ml</option>
+                </select>
+            </td>
+            <td><input type="text" class="form-control form-control-sm" placeholder="LOT-xxxx" required /></td>
+            <td><input type="date" class="form-control form-control-sm" /></td>
+            <td><input type="date" class="form-control form-control-sm" required /></td>
+            <td><input type="number" step="0.01" class="form-control form-control-sm text-end" value="1" required /></td>
+            <td>
+                <select class="form-select form-select-sm" required>
+                    <option value="1">WH1-ZA-R1-S1-B01 (Kho A - Kệ 1)</option>
+                    <option value="2">WH1-ZA-R1-S2-B02 (Kho A - Kệ 2)</option>
+                </select>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        `;
+        tableBody.appendChild(newRow);
+    }
+
+    function submitGrn() {
+        WMS.showToast('Phiếu nhập GRN-2026-0043 đã gửi trình duyệt thành công!', 'success');
+        setTimeout(() => location.href = '/Grn', 1200);
+    }
+</script>
+}

@@ -112,4 +112,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// ──── Database Migration & Data Seeding ────
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await DataSeeder.SeedDataAsync(dbContext);
+}
+
 app.Run();

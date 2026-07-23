@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Khách hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Khách hàng</h4>
+        <p class="text-muted fs-7 mb-0">Danh sách khách hàng nhận xuất kho (B2B / Consignee)</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3 fw-semibold" onclick="WMS.showToast('Mở modal thêm khách hàng', 'info')"><i class="fa-solid fa-plus me-1"></i> Thêm Khách hàng</button>
+</div>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Mã KH</th>
+                <th>Tên Khách hàng</th>
+                <th>Loại KH</th>
+                <th>Mã số thuế</th>
+                <th>Điện thoại</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold">CUST-001</td>
+                <td>Chuỗi Siêu thị Mega Market</td>
+                <td><span class="badge bg-primary">B2B_SERVICE</span></td>
+                <td>0312345678</td>
+                <td>028.3777.6666</td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">CUST-002</td>
+                <td>Đại lý Ký gửi An Bình</td>
+                <td><span class="badge bg-info">CONSIGNEE</span></td>
+                <td>0319876543</td>
+                <td>0908.123.456</td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

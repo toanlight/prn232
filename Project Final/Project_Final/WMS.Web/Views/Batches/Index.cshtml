@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Quản lý Lô & Hạn Sử Dụng";
+    string currentTab = ViewBag.Tab ?? "all";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Lô & Hạn sử dụng</h4>
+        <p class="text-muted fs-7 mb-0">Theo dõi số Lô (Lot/Batch), Hạn dùng (Expiry) & vị trí phân bổ</p>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="batchTabs">
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "all" ? "active fw-bold" : "")" href="/Batches?tab=all">
+            <i class="fa-solid fa-list me-1"></i> Tất cả Lô
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "expiring" ? "active fw-bold text-warning" : "")" href="/Batches?tab=expiring">
+            <i class="fa-solid fa-hourglass-half me-1"></i> Sắp hết hạn (<= 30 ngày)
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "expired" ? "active fw-bold text-danger" : "")" href="/Batches?tab=expired">
+            <i class="fa-solid fa-calendar-xmark me-1"></i> Đã quá hạn
+        </a>
+    </li>
+</ul>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Số Lô (Lot Number)</th>
+                <th>Sản phẩm</th>
+                <th>Ngày sản xuất</th>
+                <th>Hạn sử dụng</th>
+                <th>Số ngày còn lại</th>
+                <th class="text-end">Tồn kho</th>
+                <th>Trạng thái Lô</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold"><a href="/Batches/Detail/1" class="text-decoration-none">LOT-2026-0815</a></td>
+                <td>Sữa tươi tiệt trùng 1L</td>
+                <td>15/02/2026</td>
+                <td>15/08/2026</td>
+                <td><span class="badge badge-expiring">Còn 22 ngày</span></td>
+                <td class="text-end fw-bold">250 Hộp</td>
+                <td><span class="badge bg-success">NORMAL</span></td>
+            </tr>
+            <tr class="table-danger">
+                <td class="fw-bold"><a href="/Batches/Detail/2" class="text-decoration-none text-danger">LOT-2026-0701</a></td>
+                <td>Bánh quy bơ hộp 500g</td>
+                <td>01/01/2026</td>
+                <td>01/07/2026</td>
+                <td><span class="badge badge-expired">Đã hết hạn 22 ngày</span></td>
+                <td class="text-end fw-bold text-danger">30 Hộp</td>
+                <td><span class="badge bg-danger">EXPIRED</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

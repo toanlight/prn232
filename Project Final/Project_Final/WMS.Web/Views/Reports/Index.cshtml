@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Báo cáo & Thống kê Kho";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Báo cáo & Thống kê Kho Hàng</h4>
+        <p class="text-muted fs-7 mb-0">Trích xuất báo cáo biến động Nhập-Xuất-Tồn, Hạn sử dụng & Xuất dữ liệu Excel/PDF</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success btn-sm px-3 fw-semibold" onclick="WMS.showToast('Đã tải xuống file Excel (.xlsx)', 'success')">
+            <i class="fa-solid fa-file-excel me-1"></i> Xuất Excel
+        </button>
+        <button class="btn btn-outline-danger btn-sm px-3 fw-semibold" onclick="WMS.showToast('Đã tải xuống file PDF (.pdf)', 'success')">
+            <i class="fa-solid fa-file-pdf me-1"></i> Xuất PDF
+        </button>
+    </div>
+</div>
+
+<!-- Collapsible Filter Panel -->
+<div class="card-wms p-3 mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-3">
+            <label class="form-label fs-8 text-muted mb-1">Loại Báo cáo</label>
+            <select class="form-select form-select-sm">
+                <option value="movement">Báo cáo Biến động Nhập - Xuất - Tồn</option>
+                <option value="snapshot">Báo cáo Snapshot Tồn kho hiện tại</option>
+                <option value="expiry">Báo cáo Hạn sử dụng & Cảnh báo hết hạn</option>
+                <option value="transactions">Báo cáo Nhật ký Giao dịch Chi tiết</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label fs-8 text-muted mb-1">Từ ngày</label>
+            <input type="date" class="form-control form-control-sm" value="2026-07-01" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label fs-8 text-muted mb-1">Đến ngày</label>
+            <input type="date" class="form-control form-control-sm" value="2026-07-23" />
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary w-100 fw-semibold" style="height: 31px;">
+                <i class="fa-solid fa-filter me-1"></i> Xem Báo cáo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Report Table -->
+<div class="card-wms p-4">
+    <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">Báo cáo Biến động Nhập - Xuất - Tồn (Từ 01/07/2026 đến 23/07/2026)</h6>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle fs-7">
+            <thead class="table-light">
+                <tr>
+                    <th>SKU</th>
+                    <th>Tên sản phẩm</th>
+                    <th>ĐVT</th>
+                    <th class="text-end">Tồn đầu kỳ</th>
+                    <th class="text-end text-success">Tổng Nhập (GRN)</th>
+                    <th class="text-end text-primary">Tổng Xuất (GDN)</th>
+                    <th class="text-end fw-bold text-dark">Tồn cuối kỳ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold">SKU-FOOD-001</td>
+                    <td>Sữa tươi tiệt trùng 1L</td>
+                    <td>Hộp</td>
+                    <td class="text-end">200</td>
+                    <td class="text-end text-success fw-bold">+300</td>
+                    <td class="text-end text-primary fw-bold">-50</td>
+                    <td class="text-end fw-bold text-dark fs-6">450</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">SKU-BEV-009</td>
+                    <td>Nước ép cam 500ml</td>
+                    <td>Chai</td>
+                    <td class="text-end">50</td>
+                    <td class="text-end text-success fw-bold">+150</td>
+                    <td class="text-end text-primary fw-bold">-50</td>
+                    <td class="text-end fw-bold text-dark fs-6">150</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

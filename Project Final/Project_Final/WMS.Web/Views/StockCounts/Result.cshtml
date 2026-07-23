@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Kết quả Kiểm kê & Chênh lệch (Variances)";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Kết quả Kiểm kê & Chênh lệch (Count Variances)</h4>
+        <p class="text-muted fs-7 mb-0">Phiếu kiểm kê: <strong>SC-2026-0005</strong> | Kho Tổng Trung Tâm</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-warning btn-sm px-3 fw-semibold" onclick="WMS.showToast('Đã tạo Phiếu Điều Chỉnh Tồn Kho SA-2026-0015!', 'success')">
+            <i class="fa-solid fa-sliders me-1"></i> Tạo Phiếu Điều Chỉnh Tồn (Stock Adjustment)
+        </button>
+        <a href="/StockCounts" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Quay lại</a>
+    </div>
+</div>
+
+<div class="card-wms p-4">
+    <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">Bảng đối chiếu Số liệu Hệ thống vs Thực tế kiểm đếm</h6>
+    <table class="table table-bordered align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Bin Path (Vị trí)</th>
+                <th>SKU</th>
+                <th>Sản phẩm</th>
+                <th>Số Lô</th>
+                <th class="text-end">Tồn Hệ thống</th>
+                <th class="text-end">Thực tế kiểm</th>
+                <th class="text-end">Số lượng Chênh lệch</th>
+                <th>Đánh giá Chênh lệch</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="table-danger">
+                <td class="fw-bold">WH1-ZA-R1-S1-B01</td>
+                <td class="fw-bold">SKU-FOOD-001</td>
+                <td>Sữa tươi tiệt trùng 1L</td>
+                <td>LOT-2026-0815</td>
+                <td class="text-end fw-bold">100</td>
+                <td class="text-end fw-bold">95</td>
+                <!-- Negative Variance (Red) -->
+                <td class="text-end fw-bold text-danger fs-6">-5</td>
+                <td><span class="badge bg-danger">Hao hụt / Mất mát (-5 Hộp)</span></td>
+            </tr>
+            <tr class="table-success">
+                <td class="fw-bold">WH1-ZA-R1-S2-B02</td>
+                <td class="fw-bold">SKU-BEV-009</td>
+                <td>Nước ép cam 500ml</td>
+                <td>LOT-2026-0910</td>
+                <td class="text-end fw-bold">50</td>
+                <td class="text-end fw-bold">52</td>
+                <!-- Positive Variance (Green) -->
+                <td class="text-end fw-bold text-success fs-6">+2</td>
+                <td><span class="badge bg-success">Dư thừa (+2 Chai)</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

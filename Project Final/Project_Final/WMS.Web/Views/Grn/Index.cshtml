@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Phiếu Nhập Kho (GRN)";
+    string currentTab = ViewBag.Tab ?? "all";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Phiếu Nhập Kho (Goods Receipt Notes)</h4>
+        <p class="text-muted fs-7 mb-0">Quản lý quy trình nhập hàng, gán vị trí lưu kho & phê duyệt L1/L2</p>
+    </div>
+    <a href="/Grn/Create" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Lập Phiếu Nhập Kho</a>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "all" ? "active fw-bold" : "")" href="/Grn?tab=all">Tất cả phiếu</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "pending_l1" ? "active fw-bold text-warning" : "")" href="/Grn?tab=pending_l1">Chờ L1 duyệt</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "pending_l2" ? "active fw-bold text-warning" : "")" href="/Grn?tab=pending_l2">Chờ L2 duyệt</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(currentTab == "approved" ? "active fw-bold text-success" : "")" href="/Grn?tab=approved">Đã hoàn thành</a>
+    </li>
+</ul>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Số Phiếu (GRN No.)</th>
+                <th>Nhà cung cấp</th>
+                <th>Kho nhận</th>
+                <th>Ngày nhập</th>
+                <th>Trạng thái</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold"><a href="/Grn/Detail/1" class="text-decoration-none">GRN-2026-0042</a></td>
+                <td>Công ty TNHH THVL</td>
+                <td>Kho Tổng Trung Tâm</td>
+                <td>23/07/2026</td>
+                <td><span class="badge badge-pending">Chờ L1 - Trưởng kho</span></td>
+                <td class="text-center">
+                    <a href="/Grn/Detail/1" class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-eye me-1"></i> Xem</a>
+                </td>
+            </tr>
+            <tr>
+                <td class="fw-bold"><a href="/Grn/Detail/2" class="text-decoration-none">GRN-2026-0041</a></td>
+                <td>Tập đoàn Thực phẩm Á Châu</td>
+                <td>Kho Tổng Trung Tâm</td>
+                <td>20/07/2026</td>
+                <td><span class="badge badge-approved">Đã phê duyệt (Completed)</span></td>
+                <td class="text-center">
+                    <a href="/Grn/Detail/2" class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-eye me-1"></i> Xem</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

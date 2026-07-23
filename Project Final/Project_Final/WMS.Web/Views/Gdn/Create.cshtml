@@ -1,0 +1,144 @@
+@{
+    ViewData["Title"] = "Tạo Phiếu Xuất Kho (GDN) & Gợi ý FEFO";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Tạo Phiếu Xuất Kho (Create GDN)</h4>
+        <p class="text-muted fs-7 mb-0">Hệ thống tự động đề xuất xuất hàng theo quy tắc **FEFO (First Expired, First Out)**</p>
+    </div>
+    <a href="/Gdn" class="btn btn-outline-secondary btn-sm px-3 fw-semibold">
+        <i class="fa-solid fa-arrow-left me-1"></i> Hủy & Quay lại
+    </a>
+</div>
+
+<form id="createGdnForm">
+    <!-- Header info -->
+    <div class="card-wms p-4 mb-4">
+        <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary"><i class="fa-solid fa-truck-dispatch me-2"></i>1. Thông tin Phiếu Xuất Kho</h6>
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Khách hàng <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" required>
+                    <option value="1">Chuỗi Siêu thị Mega Market</option>
+                    <option value="2">Đại lý Ký gửi An Bình</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Kho xuất hàng <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" required>
+                    <option value="1">Kho Tổng Trung Tâm (WH-CENTRAL)</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label fs-7 fw-semibold">Ngày yêu cầu xuất</label>
+                <input type="date" class="form-control form-control-sm" value="2026-07-24" />
+            </div>
+        </div>
+    </div>
+
+    <!-- FEFO Suggestion & Lines Table -->
+    <div class="card-wms p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h6 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-clock-rotate-left me-2"></i>2. Chi tiết xuất hàng & Thuật toán FEFO</h6>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fs-7 fw-semibold">Chọn sản phẩm cần xuất:</label>
+            <div class="input-group input-group-sm" style="max-width: 450px;">
+                <select id="selectProductFefo" class="form-select">
+                    <option value="1">SKU-FOOD-001 | Sữa tươi tiệt trùng 1L (Khả dụng: 400)</option>
+                    <option value="2">SKU-BEV-009 | Nước ép cam 500ml (Khả dụng: 150)</option>
+                </select>
+                <button type="button" class="btn btn-primary fw-semibold px-3" onclick="triggerFefoSuggestion()">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Tải Gợi ý FEFO
+                </button>
+            </div>
+        </div>
+
+        <!-- FEFO Suggestion Panel (Dynamic Display) -->
+        <div id="fefoPanel" class="p-3 bg-light rounded border border-info mb-4" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-info fs-7"><i class="fa-solid fa-robot me-1"></i>ĐỀ XUẤT PHÂN BỔ FEFO CHO: SKU-FOOD-001</span>
+                <span class="badge bg-success">Đủ khả dụng đáp ứng</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered bg-white fs-7 mb-0">
+                    <thead class="table-info">
+                        <tr>
+                            <th>Ưu tiên FEFO</th>
+                            <th>Số Lô (Lot Number)</th>
+                            <th>Hạn sử dụng</th>
+                            <th>Vị trí Bin</th>
+                            <th>Khả dụng</th>
+                            <th>Số lượng phân bổ lấy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-warning">
+                            <td><span class="badge bg-danger">Ưu tiên 1 (HSD ngắn nhất)</span></td>
+                            <td class="fw-bold">LOT-2026-0815</td>
+                            <td class="text-danger fw-bold">15/08/2026 (Còn 22 ngày)</td>
+                            <td>WH1-ZA-R1-S1-B01</td>
+                            <td class="fw-bold">250</td>
+                            <td><input type="number" value="50" class="form-control form-control-sm text-end fw-bold text-primary" style="width: 100px;" /></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-secondary">Ưu tiên 2</span></td>
+                            <td class="fw-bold">LOT-2026-0910</td>
+                            <td>10/09/2026 (Còn 48 ngày)</td>
+                            <td>WH1-ZA-R1-S2-B02</td>
+                            <td class="fw-bold">150</td>
+                            <td><input type="number" value="0" class="form-control form-control-sm text-end" style="width: 100px;" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Confirmed Lines -->
+        <h6 class="fw-semibold fs-7 mb-2">Danh sách dòng xuất kho đã chốt:</h6>
+        <table class="table table-bordered align-middle fs-7">
+            <thead class="table-light">
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Số Lô được chọn</th>
+                    <th>Vị trí Bin lấy</th>
+                    <th class="text-end">Số lượng xuất</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong class="text-dark">SKU-FOOD-001</strong> - Sữa tươi 1L</td>
+                    <td><span class="badge bg-light text-dark border">LOT-2026-0815</span></td>
+                    <td><span class="badge bg-light text-primary border">WH1-ZA-R1-S1-B01</span></td>
+                    <td class="text-end fw-bold text-primary">50</td>
+                    <td class="text-center"><button class="btn btn-sm btn-link text-danger p-0"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary px-4" onclick="WMS.showToast('Đã lưu nháp phiếu xuất', 'info')">Lưu bản nháp</button>
+        <button type="button" class="btn btn-success px-4 fw-semibold" onclick="submitGdn()">
+            <i class="fa-solid fa-paper-plane me-1"></i> Gửi duyệt GDN
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    function triggerFefoSuggestion() {
+        document.getElementById('fefoPanel').style.display = 'block';
+        WMS.showToast('Đã tải gợi ý FEFO theo Hạn sử dụng sớm nhất!', 'success');
+    }
+
+    function submitGdn() {
+        WMS.showToast('Tạo phiếu xuất GDN-2026-0090 thành công!', 'success');
+        setTimeout(() => location.href = '/Gdn', 1200);
+    }
+</script>
+}

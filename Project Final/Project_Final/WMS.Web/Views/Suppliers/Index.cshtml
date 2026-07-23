@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Nhà cung cấp";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Nhà cung cấp</h4>
+        <p class="text-muted fs-7 mb-0">Danh sách đối tác cung ứng, hợp đồng & thông tin liên hệ</p>
+    </div>
+    <a href="/Suppliers/Create" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Thêm Nhà cung cấp</a>
+</div>
+
+<div class="card-wms p-4">
+    <table class="table table-hover align-middle fs-7">
+        <thead class="table-light">
+            <tr>
+                <th>Mã NCC</th>
+                <th>Tên Nhà cung cấp</th>
+                <th>Mã số thuế</th>
+                <th>Điện thoại</th>
+                <th>Email</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="fw-bold">SUP-001</td>
+                <td>Công ty TNHH THVL</td>
+                <td>0101234567</td>
+                <td>028.3812.3456</td>
+                <td>contact@thvl.com.vn</td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+            </tr>
+            <tr>
+                <td class="fw-bold">SUP-002</td>
+                <td>Tập đoàn Thực phẩm Á Châu</td>
+                <td>0309876543</td>
+                <td>028.3999.8888</td>
+                <td>info@achau.vn</td>
+                <td><span class="badge bg-success">Hoạt động</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

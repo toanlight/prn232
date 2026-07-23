@@ -1,0 +1,325 @@
+@{
+    ViewData["Title"] = "Main Dashboard";
+    var summary = ViewBag.Summary as WMS.Web.Controllers.DashboardSummaryDto;
+    var lowStock = ViewBag.LowStock as List<WMS.Web.Controllers.LowStockItemDto>;
+    var expiringBatches = ViewBag.ExpiringBatches as List<WMS.Web.Controllers.ExpiringBatchItemDto>;
+    var recentActivities = ViewBag.RecentActivities as List<WMS.Web.Controllers.RecentActivityDto>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Tổng quan Kho Hàng</h4>
+        <p class="text-muted fs-7 mb-0">Theo dõi hoạt động kho, tồn kho & phê duyệt theo thời gian thực</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Grn/Create" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Tạo Nhập Kho</a>
+        <a href="/Gdn/Create" class="btn btn-outline-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Tạo Xuất Kho</a>
+    </div>
+</div>
+
+<!-- ──── 1. KPI Cards (4 Cards) ──── -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-wms card-kpi">
+            <div>
+                <div class="text-muted fs-8 fw-semibold uppercase">TỔNG SKU HOẠT ĐỘNG</div>
+                <div class="fs-3 fw-bold text-dark mt-1">@(summary?.TotalActiveSkus ?? 154)</div>
+                <div class="fs-8 text-success mt-1"><i class="fa-solid fa-arrow-up me-1"></i>Đang lưu kho</div>
+            </div>
+            <div class="kpi-icon kpi-blue">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-wms card-kpi">
+            <div>
+                <div class="text-muted fs-8 fw-semibold uppercase">GIAO DỊCH HÔM NAY</div>
+                <div class="fs-3 fw-bold text-dark mt-1">@(summary?.TodayTransactions ?? 28)</div>
+                <div class="fs-8 text-info mt-1"><i class="fa-solid fa-right-left me-1"></i>GRN & GDN</div>
+            </div>
+            <div class="kpi-icon kpi-green">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-wms card-kpi">
+            <div>
+                <div class="text-muted fs-8 fw-semibold uppercase">PHIẾU CHỜ DUYỆT</div>
+                <div class="fs-3 fw-bold text-dark mt-1">@(summary?.PendingApprovals ?? 5)</div>
+                <div class="fs-8 text-warning mt-1"><i class="fa-solid fa-clock me-1"></i>Cần Trưởng kho/GĐ duyệt</div>
+            </div>
+            <div class="kpi-icon kpi-amber">
+                <i class="fa-solid fa-file-signature"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-wms card-kpi">
+            <div>
+                <div class="text-muted fs-8 fw-semibold uppercase">CẢNH BÁO TỒN THẤP</div>
+                <div class="fs-3 fw-bold text-dark mt-1">@(summary?.LowStockAlerts ?? 3)</div>
+                <div class="fs-8 text-danger mt-1"><i class="fa-solid fa-triangle-exclamation me-1"></i>Dưới định mức min</div>
+            </div>
+            <div class="kpi-icon kpi-red">
+                <i class="fa-solid fa-bell-concierge"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ──── 2. Movement Chart with Start Date - End Date Filter ──── -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="card-wms h-100 p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-chart-area text-primary me-2"></i>Biểu đồ Nhập - Xuất Kho
+                </h6>
+                
+                <!-- User requested Start Date - End Date filter -->
+                <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                    <div class="input-group input-group-sm" style="width: auto;">
+                        <span class="input-group-text bg-light fs-8">Từ</span>
+                        <input type="date" id="chartStartDate" class="form-control form-control-sm" />
+                    </div>
+                    <div class="input-group input-group-sm" style="width: auto;">
+                        <span class="input-group-text bg-light fs-8">Đến</span>
+                        <input type="date" id="chartEndDate" class="form-control form-control-sm" />
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary px-2" onclick="loadMovementChart()">
+                        <i class="fa-solid fa-filter fs-8 me-1"></i>Lọc
+                    </button>
+                </div>
+            </div>
+
+            <div style="position: relative; height: 300px;">
+                <canvas id="movementChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card-wms h-100 p-4">
+            <h6 class="fw-bold mb-3 text-dark border-bottom pb-2">
+                <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>Phiếu chờ duyệt nhanh
+            </h6>
+            <div class="list-group list-group-flush fs-7">
+                <div class="list-group-item px-0 py-2.5 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">GRN-2026-0042</div>
+                        <div class="text-muted fs-8">NCC: Công ty THVL • 150 thùng</div>
+                    </div>
+                    <span class="badge badge-pending">L1 - Trưởng kho</span>
+                </div>
+                <div class="list-group-item px-0 py-2.5 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">GDN-2026-0089</div>
+                        <div class="text-muted fs-8">KH: Siêu thị Mega • 80 thùng</div>
+                    </div>
+                    <span class="badge badge-pending">L2 - Giám đốc</span>
+                </div>
+                <div class="list-group-item px-0 py-2.5 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">SA-2026-0012</div>
+                        <div class="text-muted fs-8">Điều chỉnh kiểm kê Kho A</div>
+                    </div>
+                    <span class="badge badge-pending">L1 - Trưởng kho</span>
+                </div>
+            </div>
+            <a href="/Approvals" class="btn btn-sm btn-outline-secondary w-100 mt-3 fw-semibold">Xem tất cả hộp thư duyệt</a>
+        </div>
+    </div>
+</div>
+
+<!-- ──── 3. Tables: Low Stock Top 10 & Expiring Batches ──── -->
+<div class="row g-3">
+    <div class="col-12 col-lg-6">
+        <div class="card-wms p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Top SKU Tồn thấp dưới định mức
+                </h6>
+                <a href="/Products" class="fs-8 text-decoration-none fw-semibold">Xem tất cả</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle fs-7 mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>SKU</th>
+                            <th>Tên sản phẩm</th>
+                            <th class="text-end">Hiện tồn</th>
+                            <th class="text-end">Mức tối thiểu</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (lowStock != null && lowStock.Any())
+                        {
+                            foreach (var item in lowStock)
+                            {
+                                <tr class="tr-low-stock">
+                                    <td class="fw-bold text-dark">@item.SKU</td>
+                                    <td>@item.Name</td>
+                                    <td class="text-end fw-bold text-danger">@item.TotalQty</td>
+                                    <td class="text-end text-muted">@item.MinStock</td>
+                                    <td><span class="badge bg-danger">Dưới min</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr class="tr-low-stock">
+                                <td class="fw-bold text-dark">SKU-FOOD-001</td>
+                                <td>Sữa tươi tiệt trùng 1L</td>
+                                <td class="text-end fw-bold text-danger">15</td>
+                                <td class="text-end text-muted">50</td>
+                                <td><span class="badge bg-danger">Thiếu 35</span></td>
+                            </tr>
+                            <tr class="tr-low-stock">
+                                <td class="fw-bold text-dark">SKU-BEV-009</td>
+                                <td>Nước ép cam nguyên chất</td>
+                                <td class="text-end fw-bold text-danger">8</td>
+                                <td class="text-end text-muted">30</td>
+                                <td><span class="badge bg-danger">Thiếu 22</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card-wms p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-warning">
+                    <i class="fa-solid fa-hourglass-half me-2"></i>Lô hàng sắp hết hạn (<= 30 ngày)
+                </h6>
+                <a href="/Batches/Expiring" class="fs-8 text-decoration-none fw-semibold">Xem chi tiết</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle fs-7 mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Số Lô</th>
+                            <th>Sản phẩm</th>
+                            <th>Hạn dùng</th>
+                            <th class="text-end">Số lượng</th>
+                            <th>Cảnh báo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (expiringBatches != null && expiringBatches.Any())
+                        {
+                            foreach (var b in expiringBatches)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@b.LotNumber</td>
+                                    <td>@b.ProductName</td>
+                                    <td>@b.ExpiryDate</td>
+                                    <td class="text-end fw-bold">@b.Quantity</td>
+                                    <td><span class="badge badge-expiring">Còn @b.DaysToExpiry ngày</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">LOT-2026-0815</td>
+                                <td>Bột mì đa dụng 1kg</td>
+                                <td>15/08/2026</td>
+                                <td class="text-end fw-bold">120</td>
+                                <td><span class="badge badge-expiring">Còn 22 ngày</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-dark">LOT-2026-0802</td>
+                                <td>Dầu ăn Tường An 5L</td>
+                                <td>02/08/2026</td>
+                                <td class="text-end fw-bold">45</td>
+                                <td><span class="badge badge-expiring">Còn 9 ngày</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let myChart = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set default date range: last 7 days
+        const today = new Date();
+        const past7 = new Date();
+        past7.setDate(today.getDate() - 7);
+
+        document.getElementById('chartEndDate').value = today.toISOString().split('T')[0];
+        document.getElementById('chartStartDate').value = past7.toISOString().split('T')[0];
+
+        loadMovementChart();
+    });
+
+    function loadMovementChart() {
+        const startDate = document.getElementById('chartStartDate').value;
+        const endDate = document.getElementById('chartEndDate').value;
+
+        // Sample static data generator based on selected dates
+        const ctx = document.getElementById('movementChart').getContext('2d');
+
+        const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        const dataIn = [120, 210, 180, 290, 310, 150, 90];
+        const dataOut = [90, 150, 210, 240, 280, 190, 110];
+
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Nhập kho (GRN)',
+                        data: dataIn,
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Xuất kho (GDN)',
+                        data: dataOut,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        WMS.showToast(`Đã cập nhật biểu đồ từ ${startDate} đến ${endDate}`, 'info');
+    }
+</script>
+}

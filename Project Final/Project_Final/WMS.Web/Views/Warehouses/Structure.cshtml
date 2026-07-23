@@ -1,0 +1,85 @@
+@model WMS.Web.Controllers.WarehouseViewModel
+@{
+    ViewData["Title"] = "Cấu trúc Kho Hàng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">Sơ đồ Cây Kho: @Model.Name (@Model.Code)</h4>
+        <p class="text-muted fs-7 mb-0">Cấu trúc 5 cấp: Warehouse &rarr; Zone &rarr; Rack &rarr; Shelf &rarr; Bin</p>
+    </div>
+    <a href="/Warehouses" class="btn btn-outline-secondary btn-sm px-3 fw-semibold">
+        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-md-5">
+        <div class="card-wms p-4">
+            <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fa-solid fa-folder-tree me-2 text-primary"></i>Cây Phân Cấp Vị Trí</h6>
+            
+            <ul class="list-unstyled mb-0 fs-7">
+                <li class="mb-2">
+                    <div class="fw-bold text-primary"><i class="fa-solid fa-warehouse me-2"></i>@Model.Name</div>
+                    <ul class="list-unstyled ms-4 mt-1 border-start ps-3">
+                        <li class="mb-2">
+                            <div class="fw-semibold text-dark"><i class="fa-solid fa-cubes me-2 text-warning"></i>Zone A - Kho Khô</div>
+                            <ul class="list-unstyled ms-3 mt-1 border-start ps-3 text-secondary">
+                                <li class="mb-1">
+                                    <div><i class="fa-solid fa-bars-staggered me-2 text-info"></i>Kệ R1</div>
+                                    <ul class="list-unstyled ms-3 text-muted">
+                                        <li>Tầng S1 &rarr; <span class="badge bg-light text-dark border">Bin B-01 (Path: WH-ZA-R1-S1-B01)</span></li>
+                                        <li>Tầng S2 &rarr; <span class="badge bg-light text-dark border">Bin B-02 (Path: WH-ZA-R1-S2-B02)</span></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="mb-1">
+                            <div class="fw-semibold text-dark"><i class="fa-solid fa-snowflake me-2 text-info"></i>Zone B - Kho Lạnh</div>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-7">
+        <div class="card-wms p-4">
+            <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="fa-solid fa-circle-info me-2 text-primary"></i>Chi tiết Vị trí được chọn</h6>
+            <div class="p-3 bg-light rounded border mb-3">
+                <div class="row g-2 fs-7">
+                    <div class="col-6"><span class="text-muted">Bin Path:</span> <strong class="text-dark">WH-ZA-R1-S1-B01</strong></div>
+                    <div class="col-6"><span class="text-muted">Sức chứa tối đa:</span> <strong>1,000 kg</strong></div>
+                    <div class="col-6"><span class="text-muted">Đã lưu kho:</span> <strong class="text-success">450 kg (45%)</strong></div>
+                    <div class="col-6"><span class="text-muted">Trạng thái:</span> <span class="badge bg-success">Khả dụng</span></div>
+                </div>
+            </div>
+
+            <h6 class="fw-semibold fs-7 mb-2">Hàng hóa hiện có tại vị trí này:</h6>
+            <table class="table table-sm table-hover fs-7 align-middle border">
+                <thead class="table-light">
+                    <tr>
+                        <th>SKU</th>
+                        <th>Sản phẩm</th>
+                        <th>Số Lô</th>
+                        <th class="text-end">Số lượng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">SKU-FOOD-001</td>
+                        <td>Sữa tươi tiệt trùng 1L</td>
+                        <td>LOT-2026-0815</td>
+                        <td class="text-end fw-bold">250</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">SKU-BEV-009</td>
+                        <td>Nước ép cam 500ml</td>
+                        <td>LOT-2026-0910</td>
+                        <td class="text-end fw-bold">200</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,105 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Hệ thống WMS Enterprise</title>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1A3C5E 0%, #0F2338 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 1rem;
+            background: #2E8BC0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card login-card p-4 p-sm-5 bg-white">
+        <div class="text-center">
+            <div class="brand-logo">
+                <i class="fa-solid fa-boxes-packing"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">WMS ENTERPRISE</h4>
+            <p class="text-muted fs-7 mb-4">Hệ thống Quản lý Kho thông minh</p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show fs-7 py-2" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-1"></i> @ViewBag.Error
+                <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form method="post" action="/Auth/Login">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            
+            <div class="mb-3">
+                <label class="form-label fs-7 fw-semibold text-secondary">Tên đăng nhập</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-regular fa-user"></i></span>
+                    <input type="text" name="username" class="form-control bg-light border-start-0" placeholder="Nhập username" required autofocus />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label fs-7 fw-semibold text-secondary mb-0">Mật khẩu</label>
+                    <a href="/Auth/ForgotPassword" class="fs-8 text-decoration-none text-primary">Quên mật khẩu?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control bg-light border-start-0" placeholder="••••••••" required />
+                </div>
+            </div>
+
+            <div class="form-check mb-4 fs-7">
+                <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                <label class="form-check-label text-secondary" for="rememberMe">
+                    Ghi nhớ đăng nhập
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold shadow-sm" style="background-color: #1A3C5E; border: none;">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top text-center fs-8 text-muted">
+            <span>Ngôn ngữ: </span>
+            <a href="#" class="text-decoration-none fw-semibold text-dark">Tiếng Việt</a> | 
+            <a href="#" class="text-decoration-none text-secondary">English</a>
+        </div>
+    </div>
+</body>
+</html>
