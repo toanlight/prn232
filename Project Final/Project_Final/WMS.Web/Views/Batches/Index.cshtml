@@ -1,3 +1,4 @@
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.BatchItemViewModel>
 @{
     ViewData["Title"] = "Quản lý Lô & Hạn Sử Dụng";
     string currentTab = ViewBag.Tab ?? "all";
@@ -34,32 +35,52 @@
             <tr>
                 <th>Số Lô (Lot Number)</th>
                 <th>Sản phẩm</th>
-                <th>Ngày sản xuất</th>
+                <th>Nhà cung cấp</th>
                 <th>Hạn sử dụng</th>
-                <th>Số ngày còn lại</th>
-                <th class="text-end">Tồn kho</th>
+                <th class="text-end">Tồn ban đầu</th>
                 <th>Trạng thái Lô</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="fw-bold"><a href="/Batches/Detail/1" class="text-decoration-none">LOT-2026-0815</a></td>
-                <td>Sữa tươi tiệt trùng 1L</td>
-                <td>15/02/2026</td>
-                <td>15/08/2026</td>
-                <td><span class="badge badge-expiring">Còn 22 ngày</span></td>
-                <td class="text-end fw-bold">250 Hộp</td>
-                <td><span class="badge bg-success">NORMAL</span></td>
-            </tr>
-            <tr class="table-danger">
-                <td class="fw-bold"><a href="/Batches/Detail/2" class="text-decoration-none text-danger">LOT-2026-0701</a></td>
-                <td>Bánh quy bơ hộp 500g</td>
-                <td>01/01/2026</td>
-                <td>01/07/2026</td>
-                <td><span class="badge badge-expired">Đã hết hạn 22 ngày</span></td>
-                <td class="text-end fw-bold text-danger">30 Hộp</td>
-                <td><span class="badge bg-danger">EXPIRED</span></td>
-            </tr>
+            @if (Model.Data != null && Model.Data.Any())
+            {
+                @foreach (var item in Model.Data)
+                {
+                    bool isExpired = item.ExpiryDate.HasValue && item.ExpiryDate.Value < DateOnly.FromDateTime(DateTime.UtcNow);
+                    bool isExpiringSoon = item.ExpiryDate.HasValue && !isExpired && item.ExpiryDate.Value <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
+
+                    <tr class="@(isExpired ? "table-danger" : (isExpiringSoon ? "table-warning" : ""))">
+                        <td class="fw-bold">@item.LotNumber</td>
+                        <td>@(item.ProductName ?? "---")</td>
+                        <td>@(item.SupplierName ?? "---")</td>
+                        <td>@(item.ExpiryDate?.ToString("dd/MM/yyyy") ?? "Không HSD")</td>
+                        <td class="text-end fw-bold">@item.InitialQty</td>
+                        <td>
+                            @if (isExpired || item.Status == "Expired" || item.Status == "1")
+                            {
+                                <span class="badge bg-danger">EXPIRED</span>
+                            }
+                            else if (isExpiringSoon)
+                            {
+                                <span class="badge bg-warning text-dark">EXPIRING SOON</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">ACTIVE</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                        Không tìm thấy dữ liệu lô hàng nào.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>

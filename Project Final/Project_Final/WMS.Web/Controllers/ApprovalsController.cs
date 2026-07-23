@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WMS.Web.Models;
 using WMS.Web.Services;
 
 namespace WMS.Web.Controllers;
@@ -14,14 +15,10 @@ public class ApprovalsController : Controller
         _apiClient = apiClient;
     }
 
-    public IActionResult Index([FromQuery] string? tab = "inbox")
+    public async Task<IActionResult> Inbox()
     {
-        ViewBag.Tab = tab;
-        return View("Inbox");
-    }
-
-    public IActionResult Inbox()
-    {
-        return View();
+        var response = await _apiClient.GetAsync<ApiResponseModel<List<ApprovalItemViewModel>>>("api/approvals/pending");
+        var approvals = response?.Data ?? new List<ApprovalItemViewModel>();
+        return View(approvals);
     }
 }

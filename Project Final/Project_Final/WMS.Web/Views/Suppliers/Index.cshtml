@@ -1,3 +1,4 @@
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.SupplierItemViewModel>
 @{
     ViewData["Title"] = "Nhà cung cấp";
 }
@@ -7,10 +8,21 @@
         <h4 class="fw-bold mb-1 text-dark">Quản lý Nhà cung cấp</h4>
         <p class="text-muted fs-7 mb-0">Danh sách đối tác cung ứng, hợp đồng & thông tin liên hệ</p>
     </div>
-    <a href="/Suppliers/Create" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Thêm Nhà cung cấp</a>
+    <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createSupplierModal">
+        <i class="fa-solid fa-plus me-1"></i> Thêm Nhà cung cấp
+    </button>
 </div>
 
 <div class="card-wms p-4">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm kiếm theo mã, tên, SĐT, MST...">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-secondary btn-sm w-100"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm</button>
+        </div>
+    </form>
+
     <table class="table table-hover align-middle fs-7">
         <thead class="table-light">
             <tr>
@@ -23,22 +35,103 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="fw-bold">SUP-001</td>
-                <td>Công ty TNHH THVL</td>
-                <td>0101234567</td>
-                <td>028.3812.3456</td>
-                <td>contact@thvl.com.vn</td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">SUP-002</td>
-                <td>Tập đoàn Thực phẩm Á Châu</td>
-                <td>0309876543</td>
-                <td>028.3999.8888</td>
-                <td>info@achau.vn</td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-            </tr>
+            @if (Model.Data != null && Model.Data.Any())
+            {
+                @foreach (var item in Model.Data)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@item.Code</td>
+                        <td>@item.Name</td>
+                        <td>@(item.TaxCode ?? "---")</td>
+                        <td>@(item.Phone ?? "---")</td>
+                        <td>@(item.Email ?? "---")</td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Ngừng hoạt động</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                        Chưa có dữ liệu nhà cung cấp nào.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
+
+<!-- Modal Thêm Nhà cung cấp -->
+<div class="modal fade" id="createSupplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm mới Nhà cung cấp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="createSupplierForm">
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã NCC *</label>
+                        <input type="text" id="supCode" class="form-control form-control-sm" required placeholder="VD: SUP-003">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Nhà cung cấp *</label>
+                        <input type="text" id="supName" class="form-control form-control-sm" required placeholder="VD: Công ty TNHH Vận Tải">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã số thuế</label>
+                        <input type="text" id="supTaxCode" class="form-control form-control-sm" placeholder="VD: 0101234567">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold mb-1">Điện thoại</label>
+                        <input type="text" id="supPhone" class="form-control form-control-sm" placeholder="VD: 0901234567">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold mb-1">Email</label>
+                        <input type="email" id="supEmail" class="form-control form-control-sm" placeholder="contact@domain.com">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitCreateSupplier()" class="btn btn-primary btn-sm">Lưu Nhà Cung Cấp</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function submitCreateSupplier() {
+        const payload = {
+            code: document.getElementById('supCode').value,
+            name: document.getElementById('supName').value,
+            taxCode: document.getElementById('supTaxCode').value,
+            phone: document.getElementById('supPhone').value,
+            email: document.getElementById('supEmail').value
+        };
+
+        const res = await fetch('/Suppliers/Create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Success', data.message);
+            location.reload();
+        } else {
+            showToast('Error', data.message || 'Có lỗi xảy ra');
+        }
+    }
+</script>

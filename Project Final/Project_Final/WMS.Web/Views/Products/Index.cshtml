@@ -1,3 +1,4 @@
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.ProductItemViewModel>
 @{
     ViewData["Title"] = "Danh sách Sản phẩm";
 }
@@ -9,32 +10,16 @@
     </div>
     <div class="d-flex gap-2">
         <a href="/Products/Categories" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-tags me-1"></i> Danh mục</a>
-        <a href="/Products/Create" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-plus me-1"></i> Thêm Sản phẩm</a>
     </div>
 </div>
 
 <!-- ──── Filter Panel ──── -->
 <div class="card-wms p-3 mb-4">
     <form method="get" action="/Products" class="row g-2 align-items-center">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-8">
             <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm theo SKU, tên sản phẩm, mã vạch..." />
         </div>
-        <div class="col-6 col-md-3">
-            <select class="form-select form-select-sm">
-                <option value="">-- Tất cả danh mục --</option>
-                <option value="1">Thực phẩm</option>
-                <option value="2">Đồ uống</option>
-                <option value="3">Hóa mỹ phẩm</option>
-            </select>
-        </div>
-        <div class="col-6 col-md-3">
-            <select class="form-select form-select-sm">
-                <option value="">-- Trạng thái tồn kho --</option>
-                <option value="low">Chỉ hiện tồn thấp (< Min)</option>
-                <option value="active">Đang kinh doanh</option>
-            </select>
-        </div>
-        <div class="col-12 col-md-2 d-grid">
+        <div class="col-12 col-md-4 d-grid">
             <button type="submit" class="btn btn-sm btn-primary fw-semibold"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm</button>
         </div>
     </form>
@@ -49,55 +34,57 @@
                     <th>SKU</th>
                     <th>Tên sản phẩm</th>
                     <th>Mã vạch</th>
-                    <th>Danh mục</th>
-                    <th>ĐVT</th>
                     <th class="text-end">Min Stock</th>
+                    <th class="text-end">Reorder Point</th>
                     <th>Theo Lô / HSD</th>
                     <th>Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="tr-low-stock">
-                    <td class="fw-bold text-dark"><a href="/Products/Detail/1" class="text-decoration-none">SKU-FOOD-001</a></td>
-                    <td>
-                        <div class="fw-semibold">Sữa tươi tiệt trùng 1L</div>
-                        <div class="text-muted fs-8">Fresh Whole Milk 1L</div>
-                    </td>
-                    <td>8934567890123</td>
-                    <td><span class="badge bg-light text-dark border">Thực phẩm</span></td>
-                    <td>Hộp</td>
-                    <td class="text-end fw-bold text-danger">50</td>
-                    <td>
-                        <span class="badge bg-info-subtle text-info border border-info me-1"><i class="fa-solid fa-check me-1"></i>Lô</span>
-                        <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i>HSD</span>
-                    </td>
-                    <td><span class="badge bg-success">Đang bán</span></td>
-                    <td class="text-center">
-                        <a href="/Products/Edit/1" class="btn btn-sm btn-light border text-primary" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></a>
-                        <a href="/Products/Detail/1" class="btn btn-sm btn-light border text-secondary" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="fw-bold text-dark"><a href="/Products/Detail/2" class="text-decoration-none">SKU-BEV-009</a></td>
-                    <td>
-                        <div class="fw-semibold">Nước ép cam nguyên chất 500ml</div>
-                        <div class="text-muted fs-8">Pure Orange Juice</div>
-                    </td>
-                    <td>8934567890999</td>
-                    <td><span class="badge bg-light text-dark border">Đồ uống</span></td>
-                    <td>Chai</td>
-                    <td class="text-end fw-bold text-muted">30</td>
-                    <td>
-                        <span class="badge bg-info-subtle text-info border border-info me-1"><i class="fa-solid fa-check me-1"></i>Lô</span>
-                        <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i>HSD</span>
-                    </td>
-                    <td><span class="badge bg-success">Đang bán</span></td>
-                    <td class="text-center">
-                        <a href="/Products/Edit/2" class="btn btn-sm btn-light border text-primary" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></a>
-                        <a href="/Products/Detail/2" class="btn btn-sm btn-light border text-secondary" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
-                    </td>
-                </tr>
+                @if (Model.Data != null && Model.Data.Any())
+                {
+                    @foreach (var item in Model.Data)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">@item.SKU</td>
+                            <td>
+                                <div class="fw-semibold">@item.Name</div>
+                            </td>
+                            <td>@(item.Barcode ?? "---")</td>
+                            <td class="text-end fw-bold text-danger">@item.MinStock</td>
+                            <td class="text-end fw-bold text-muted">@item.ReorderPoint</td>
+                            <td>
+                                @if (item.IsBatchTracked)
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info me-1"><i class="fa-solid fa-check me-1"></i>Lô</span>
+                                }
+                                @if (item.IsExpiryTracked)
+                                {
+                                    <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i>HSD</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang bán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Tạm ngưng</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                            Chưa có sản phẩm nào trong hệ thống.
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

@@ -1,3 +1,4 @@
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.CustomerItemViewModel>
 @{
     ViewData["Title"] = "Khách hàng";
 }
@@ -5,40 +6,75 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold mb-1 text-dark">Quản lý Khách hàng</h4>
-        <p class="text-muted fs-7 mb-0">Danh sách khách hàng nhận xuất kho (B2B / Consignee)</p>
+        <p class="text-muted fs-7 mb-0">Danh sách khách hàng B2B, ký gửi & thông tin hợp đồng</p>
     </div>
-    <button class="btn btn-primary btn-sm px-3 fw-semibold" onclick="WMS.showToast('Mở modal thêm khách hàng', 'info')"><i class="fa-solid fa-plus me-1"></i> Thêm Khách hàng</button>
 </div>
 
 <div class="card-wms p-4">
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm kiếm mã, tên, SĐT, Email...">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-secondary btn-sm w-100"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm</button>
+        </div>
+    </form>
+
     <table class="table table-hover align-middle fs-7">
         <thead class="table-light">
             <tr>
                 <th>Mã KH</th>
                 <th>Tên Khách hàng</th>
-                <th>Loại KH</th>
+                <th>Phân loại</th>
                 <th>Mã số thuế</th>
                 <th>Điện thoại</th>
+                <th>Email</th>
                 <th>Trạng thái</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="fw-bold">CUST-001</td>
-                <td>Chuỗi Siêu thị Mega Market</td>
-                <td><span class="badge bg-primary">B2B_SERVICE</span></td>
-                <td>0312345678</td>
-                <td>028.3777.6666</td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-            </tr>
-            <tr>
-                <td class="fw-bold">CUST-002</td>
-                <td>Đại lý Ký gửi An Bình</td>
-                <td><span class="badge bg-info">CONSIGNEE</span></td>
-                <td>0319876543</td>
-                <td>0908.123.456</td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-            </tr>
+            @if (Model.Data != null && Model.Data.Any())
+            {
+                @foreach (var item in Model.Data)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@item.Code</td>
+                        <td>@item.Name</td>
+                        <td>
+                            @if (item.CustomerType == "B2BService" || item.CustomerType == "0")
+                            {
+                                <span class="badge bg-primary">B2B Service</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info text-dark">Consignee</span>
+                            }
+                        </td>
+                        <td>@(item.TaxCode ?? "---")</td>
+                        <td>@(item.Phone ?? "---")</td>
+                        <td>@(item.Email ?? "---")</td>
+                        <td>
+                            @if (item.IsActive)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Ngừng hoạt động</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                        Chưa có dữ liệu khách hàng nào.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>

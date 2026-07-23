@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WMS.Web.Models;
 using WMS.Web.Services;
 
 namespace WMS.Web.Controllers;
@@ -19,18 +20,16 @@ public class AdminController : Controller
         return RedirectToAction("Users");
     }
 
-    public IActionResult Users()
+    public async Task<IActionResult> Users(string? keyword, int pageIndex = 1)
     {
-        return View();
-    }
+        var endpoint = $"api/users?pageIndex={pageIndex}&pageSize=10";
+        if (!string.IsNullOrEmpty(keyword))
+        {
+            endpoint += $"&keyword={Uri.EscapeDataString(keyword)}";
+        }
 
-    public IActionResult Settings()
-    {
-        return View();
-    }
-
-    public IActionResult Notifications()
-    {
-        return View();
+        var response = await _apiClient.GetAsync<PagedResponseModel<UserItemViewModel>>(endpoint);
+        ViewBag.Keyword = keyword;
+        return View(response ?? new PagedResponseModel<UserItemViewModel>());
     }
 }

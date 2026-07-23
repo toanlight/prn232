@@ -1,3 +1,4 @@
+@model List<WMS.Web.Models.ApprovalItemViewModel>
 @{
     ViewData["Title"] = "Hộp thư Phê duyệt";
 }
@@ -7,66 +8,50 @@
         <h4 class="fw-bold mb-1 text-dark">Hộp thư Phê duyệt (Approval Inbox)</h4>
         <p class="text-muted fs-7 mb-0">Xem & Phê duyệt nhanh chứng từ Nhập (GRN), Xuất (GDN), Chuyển kho & Điều chỉnh</p>
     </div>
-    <button class="btn btn-success btn-sm px-3 fw-semibold" onclick="WMS.showToast('Đã phê duyệt hàng loạt các phiếu được chọn', 'success')">
-        <i class="fa-solid fa-check-double me-1"></i> Phê duyệt hàng loạt
-    </button>
 </div>
-
-<ul class="nav nav-tabs mb-4">
-    <li class="nav-item">
-        <a class="nav-link active fw-bold text-warning" href="#"><i class="fa-solid fa-clock me-1"></i> Chờ tôi duyệt (3)</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-secondary" href="#"><i class="fa-solid fa-circle-check me-1"></i> Lịch sử đã duyệt</a>
-    </li>
-</ul>
 
 <div class="card-wms p-4">
     <table class="table table-hover align-middle fs-7">
         <thead class="table-light">
             <tr>
-                <th style="width: 30px;"><input type="checkbox" class="form-check-input" /></th>
                 <th>Loại chứng từ</th>
-                <th>Số phiếu</th>
-                <th>Người nộp</th>
-                <th>Ngày tạo</th>
+                <th>Mã chứng từ (ID)</th>
                 <th>Cấp phê duyệt</th>
-                <th class="text-center">Thao tác duyệt nhanh</th>
+                <th>Ghi chú / Nội dung</th>
+                <th>Ngày tạo</th>
+                <th>Trạng thái</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td><input type="checkbox" class="form-check-input" /></td>
-                <td><span class="badge bg-success-subtle text-success border border-success">NHẬP KHO (GRN)</span></td>
-                <td class="fw-bold"><a href="/Grn/Detail/1" class="text-decoration-none">GRN-2026-0042</a></td>
-                <td>Nguyễn Văn A (Nhân viên kho)</td>
-                <td>23/07/2026 14:30</td>
-                <td><span class="badge badge-pending">L1 - Trưởng kho</span></td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-success px-3 fw-semibold me-1" onclick="WMS.showToast('Đã duyệt phiếu GRN-2026-0042', 'success')">
-                        <i class="fa-solid fa-check me-1"></i> Duyệt
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger px-2" onclick="WMS.confirm('Từ chối', 'Nhập lý do từ chối phiếu này?', () => WMS.showToast('Đã từ chối phiếu', 'warning'))">
-                        <i class="fa-solid fa-xmark me-1"></i> Từ chối
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td><input type="checkbox" class="form-check-input" /></td>
-                <td><span class="badge bg-primary-subtle text-primary border border-primary">XUẤT KHO (GDN)</span></td>
-                <td class="fw-bold"><a href="/Gdn/Detail/1" class="text-decoration-none">GDN-2026-0089</a></td>
-                <td>Trần Thị B (Kế toán xuất kho)</td>
-                <td>23/07/2026 10:15</td>
-                <td><span class="badge badge-pending">L2 - Giám đốc</span></td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-success px-3 fw-semibold me-1" onclick="WMS.showToast('Đã duyệt phiếu GDN-2026-0089', 'success')">
-                        <i class="fa-solid fa-check me-1"></i> Duyệt
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger px-2" onclick="WMS.confirm('Từ chối', 'Nhập lý do từ chối phiếu này?', () => WMS.showToast('Đã từ chối phiếu', 'warning'))">
-                        <i class="fa-solid fa-xmark me-1"></i> Từ chối
-                    </button>
-                </td>
-            </tr>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary border border-primary">@item.DocumentType.ToUpper()</span>
+                        </td>
+                        <td class="fw-bold">#@item.DocumentId</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">Lấp @item.Level</span>
+                        </td>
+                        <td>@(item.Comment ?? "Không có ghi chú")</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <span class="badge bg-info">@item.Status</span>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-circle-check fs-3 mb-2 d-block text-success"></i>
+                        Không có chứng từ nào đang chờ phê duyệt.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>

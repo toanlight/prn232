@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WMS.Web.Models;
 using WMS.Web.Services;
 
 namespace WMS.Web.Controllers;
@@ -14,23 +15,35 @@ public class SuppliersController : Controller
         _apiClient = apiClient;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(string? keyword, int pageIndex = 1)
     {
-        return View();
+        var endpoint = $"api/suppliers?pageIndex={pageIndex}&pageSize=10";
+        if (!string.IsNullOrEmpty(keyword))
+        {
+            endpoint += $"&keyword={Uri.EscapeDataString(keyword)}";
+        }
+
+        var response = await _apiClient.GetAsync<PagedResponseModel<SupplierItemViewModel>>(endpoint);
+        ViewBag.Keyword = keyword;
+        return View(response ?? new PagedResponseModel<SupplierItemViewModel>());
     }
 
-    public IActionResult Create()
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateSupplierRequest dto)
     {
-        return View("Form", new SupplierViewModel());
+        try
+        {
+            await _apiClient.PostAsync<object>("api/suppliers", dto);
+            return Json(new { success = true, message = "Tạo nhà cung cấp thành công!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 }
 
-public class SupplierViewModel
-{
-    public int Id { get; set; }
-    public string Code { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string? TaxCode { get; set; }
-    public string? Phone { get; set; }
-    public string? Email { get; set; }
-}
+public record CreateSupplierRequest(
+    string Code, string Name, string? TaxCode, string? Address,
+    string? Email, string? Phone, string? ContactPerson, string? ContractNumber
+);

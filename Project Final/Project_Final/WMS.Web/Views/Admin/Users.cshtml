@@ -1,3 +1,4 @@
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.UserItemViewModel>
 @{
     ViewData["Title"] = "Quản lý Người dùng System";
 }
@@ -5,9 +6,8 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold mb-1 text-dark">Quản lý Người dùng & Phân quyền</h4>
-        <p class="text-muted fs-7 mb-0">Thêm người dùng mới, gán vai trò (Roles) & phân quyền truy cập hệ thống</p>
+        <p class="text-muted fs-7 mb-0">Danh sách tài khoản người dùng thực tế trong hệ thống WMS</p>
     </div>
-    <button class="btn btn-primary btn-sm px-3 fw-semibold" onclick="WMS.showToast('Mở modal tạo tài khoản', 'info')"><i class="fa-solid fa-user-plus me-1"></i> Thêm Người dùng</button>
 </div>
 
 <div class="card-wms p-4">
@@ -17,32 +17,42 @@
                 <th>Username</th>
                 <th>Họ và tên</th>
                 <th>Email</th>
-                <th>Vai trò (Roles)</th>
+                <th>Điện thoại</th>
                 <th>Trạng thái</th>
-                <th class="text-center">Thao tác</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="fw-bold">admin</td>
-                <td>Quản trị viên Hệ thống</td>
-                <td>admin@wms.com.vn</td>
-                <td><span class="badge bg-danger me-1">ADMIN</span></td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-user-pen"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td class="fw-bold">manager01</td>
-                <td>Nguyễn Văn A (Trưởng Kho)</td>
-                <td>manager01@wms.com.vn</td>
-                <td><span class="badge bg-warning text-dark me-1">WH_MANAGER</span></td>
-                <td><span class="badge bg-success">Hoạt động</span></td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-user-pen"></i></button>
-                </td>
-            </tr>
+            @if (Model.Data != null && Model.Data.Any())
+            {
+                @foreach (var user in Model.Data)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">@user.Username</td>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@(user.Phone ?? "---")</td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Khóa</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-users-slash fs-3 mb-2 d-block"></i>
+                        Chưa có dữ liệu người dùng nào.
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 </div>

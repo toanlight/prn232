@@ -1,4 +1,4 @@
-@model List<WMS.Web.Controllers.WarehouseViewModel>
+@model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.WarehouseItemViewModel>
 @{
     ViewData["Title"] = "Danh sách Kho Hàng";
 }
@@ -6,17 +6,14 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold mb-1 text-dark">Danh sách Kho Hàng</h4>
-        <p class="text-muted fs-7 mb-0">Quản lý kho vật lý và sơ đồ lưu trữ</p>
+        <p class="text-muted fs-7 mb-0">Quản lý kho vật lý và sơ đồ lưu trữ 5 cấp</p>
     </div>
-    <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createWarehouseModal">
-        <i class="fa-solid fa-plus me-1"></i> Thêm Kho Hàng
-    </button>
 </div>
 
 <div class="row g-3">
-    @if (Model != null && Model.Any())
+    @if (Model.Data != null && Model.Data.Any())
     {
-        foreach (var wh in Model)
+        foreach (var wh in Model.Data)
         {
             <div class="col-12 col-md-6 col-xl-4">
                 <div class="card-wms p-4">
@@ -37,10 +34,7 @@
 
                     <div class="d-flex gap-2 pt-2 border-top">
                         <a href="/Warehouses/@wh.Id/Structure" class="btn btn-sm btn-outline-primary flex-grow-1 fw-semibold">
-                            <i class="fa-solid fa-sitemap me-1"></i> Sơ đồ Cây Kho
-                        </a>
-                        <a href="/Warehouses/@wh.Id/Zones" class="btn btn-sm btn-light border fw-semibold">
-                            <i class="fa-solid fa-layer-group me-1"></i> Quản lý Zone
+                            <i class="fa-solid fa-sitemap me-1"></i> Xem Sơ đồ Cây Kho
                         </a>
                     </div>
                 </div>
@@ -49,30 +43,9 @@
     }
     else
     {
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card-wms p-4">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="kpi-icon kpi-blue">
-                            <i class="fa-solid fa-warehouse"></i>
-                        </div>
-                        <div>
-                            <h6 class="fw-bold mb-0 text-dark">Kho Tổng Trung Tâm</h6>
-                            <span class="badge bg-light text-secondary border">Mã: WH-CENTRAL</span>
-                        </div>
-                    </div>
-                    <span class="badge bg-success">Hoạt động</span>
-                </div>
-                <p class="text-muted fs-7 mb-3"><i class="fa-solid fa-location-dot me-1"></i>Lô C4, KCN Tân Bình, TP.HCM</p>
-                <div class="d-flex gap-2 pt-2 border-top">
-                    <a href="/Warehouses/1/Structure" class="btn btn-sm btn-outline-primary flex-grow-1 fw-semibold">
-                        <i class="fa-solid fa-sitemap me-1"></i> Sơ đồ Cây Kho
-                    </a>
-                    <a href="/Warehouses/1/Zones" class="btn btn-sm btn-light border fw-semibold">
-                        <i class="fa-solid fa-layer-group me-1"></i> Quản lý Zone
-                    </a>
-                </div>
-            </div>
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-warehouse fs-1 mb-2 d-block text-secondary"></i>
+            Chưa có kho hàng nào được khởi tạo.
         </div>
     }
 </div>

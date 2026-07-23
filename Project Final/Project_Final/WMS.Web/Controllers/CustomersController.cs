@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WMS.Web.Models;
 using WMS.Web.Services;
 
 namespace WMS.Web.Controllers;
@@ -14,8 +15,16 @@ public class CustomersController : Controller
         _apiClient = apiClient;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(string? keyword, int pageIndex = 1)
     {
-        return View();
+        var endpoint = $"api/customers?pageIndex={pageIndex}&pageSize=10";
+        if (!string.IsNullOrEmpty(keyword))
+        {
+            endpoint += $"&keyword={Uri.EscapeDataString(keyword)}";
+        }
+
+        var response = await _apiClient.GetAsync<PagedResponseModel<CustomerItemViewModel>>(endpoint);
+        ViewBag.Keyword = keyword;
+        return View(response ?? new PagedResponseModel<CustomerItemViewModel>());
     }
 }

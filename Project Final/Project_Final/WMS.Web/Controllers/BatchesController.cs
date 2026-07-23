@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WMS.Web.Models;
 using WMS.Web.Services;
 
 namespace WMS.Web.Controllers;
@@ -14,20 +15,20 @@ public class BatchesController : Controller
         _apiClient = apiClient;
     }
 
-    public IActionResult Index([FromQuery] string? tab = "all")
+    public async Task<IActionResult> Index(string? tab = "all", int pageIndex = 1)
     {
+        var endpoint = $"api/batches?pageIndex={pageIndex}&pageSize=10";
+        if (tab == "expiring")
+        {
+            endpoint += "&status=ExpiringSoon";
+        }
+        else if (tab == "expired")
+        {
+            endpoint += "&status=Expired";
+        }
+
+        var response = await _apiClient.GetAsync<PagedResponseModel<BatchItemViewModel>>(endpoint);
         ViewBag.Tab = tab;
-        return View();
-    }
-
-    public IActionResult Detail(int id)
-    {
-        ViewBag.BatchId = id;
-        return View();
-    }
-
-    public IActionResult Expiring()
-    {
-        return View();
+        return View(response ?? new PagedResponseModel<BatchItemViewModel>());
     }
 }
