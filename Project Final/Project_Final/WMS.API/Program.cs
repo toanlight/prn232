@@ -22,7 +22,7 @@ builder.Services.AddHttpContextAccessor();
 
 // ──── JWT Authentication ────
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var secretKey = Encoding.UTF8.GetBytes(jwtSection["Secret"]!);
+var secretKey = Encoding.UTF8.GetBytes(jwtSection["Key"] ?? jwtSection["Secret"]!);
 
 builder.Services.AddAuthentication(options =>
 {
