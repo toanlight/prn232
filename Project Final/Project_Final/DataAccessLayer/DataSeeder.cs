@@ -16,7 +16,7 @@ public static class DataSeeder
     public static async Task SeedDataAsync(WmsDbContext context)
     {
         // 1. Roles
-        if (!await context.Roles.AnyAsync())
+        if (!await context.Roles.AnyAsync(r => r.RoleCode == "ADMIN"))
         {
             var roles = new List<Role>
             {
@@ -28,14 +28,20 @@ public static class DataSeeder
                 new Role { RoleCode = "SALES", RoleName = "Nhân viên Kinh doanh", RoleNameEn = "Sales Staff", Description = "Tạo Yêu cầu xuất kho & Khách hàng", IsActive = true },
                 new Role { RoleCode = "INV_CTRL", RoleName = "Kiểm soát Tồn kho", RoleNameEn = "Inventory Controller", Description = "Theo dõi tồn kho, hạn sử dụng & điều chỉnh", IsActive = true }
             };
-            await context.Roles.AddRangeAsync(roles);
+            foreach (var r in roles)
+            {
+                if (!await context.Roles.AnyAsync(x => x.RoleCode == r.RoleCode))
+                {
+                    await context.Roles.AddAsync(r);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
         // 2. Users (Password default: "123456" hashed with BCrypt)
         string defaultPasswordHash = BCrypt.Net.BCrypt.HashPassword("123456");
 
-        if (!await context.Users.AnyAsync())
+        if (!await context.Users.AnyAsync(u => u.Username == "admin"))
         {
             var users = new List<User>
             {
@@ -46,35 +52,44 @@ public static class DataSeeder
                 new User { Username = "purchasing01", PasswordHash = defaultPasswordHash, FullName = "Phạm Thị D (Mua Hàng)", FullNameEn = "Pham Thi D", Email = "purchasing01@wms.com.vn", Phone = "0905678901", IsActive = true, PreferredLang = "vi", CreatedAt = DateTime.UtcNow },
                 new User { Username = "sales01", PasswordHash = defaultPasswordHash, FullName = "Hoàng Văn E (Kinh Doanh)", FullNameEn = "Hoang Van E", Email = "sales01@wms.com.vn", Phone = "0906789012", IsActive = true, PreferredLang = "vi", CreatedAt = DateTime.UtcNow }
             };
-            await context.Users.AddRangeAsync(users);
+
+            foreach (var u in users)
+            {
+                if (!await context.Users.AnyAsync(x => x.Username == u.Username))
+                {
+                    await context.Users.AddAsync(u);
+                }
+            }
             await context.SaveChangesAsync();
 
             // Assign Roles
-            var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
-            var managerUser = await context.Users.FirstAsync(u => u.Username == "manager01");
-            var staffUser = await context.Users.FirstAsync(u => u.Username == "staff01");
-            var directorUser = await context.Users.FirstAsync(u => u.Username == "director01");
-            var purchasingUser = await context.Users.FirstAsync(u => u.Username == "purchasing01");
-            var salesUser = await context.Users.FirstAsync(u => u.Username == "sales01");
+            var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin");
+            var managerUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "manager01");
+            var staffUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "staff01");
+            var directorUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "director01");
+            var purchasingUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "purchasing01");
+            var salesUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "sales01");
 
-            var adminRole = await context.Roles.FirstAsync(r => r.RoleCode == "ADMIN");
-            var managerRole = await context.Roles.FirstAsync(r => r.RoleCode == "WH_MANAGER");
-            var staffRole = await context.Roles.FirstAsync(r => r.RoleCode == "WH_STAFF");
-            var directorRole = await context.Roles.FirstAsync(r => r.RoleCode == "DIRECTOR");
-            var purchasingRole = await context.Roles.FirstAsync(r => r.RoleCode == "PURCHASING");
-            var salesRole = await context.Roles.FirstAsync(r => r.RoleCode == "SALES");
+            var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "ADMIN");
+            var managerRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "WH_MANAGER");
+            var staffRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "WH_STAFF");
+            var directorRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "DIRECTOR");
+            var purchasingRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "PURCHASING");
+            var salesRole = await context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "SALES");
 
-            var userRoles = new List<UserRole>
+            if (adminUser != null && adminRole != null && !await context.UserRoles.AnyAsync(ur => ur.UserId == adminUser.Id))
             {
-                new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id },
-                new UserRole { UserId = managerUser.Id, RoleId = managerRole.Id },
-                new UserRole { UserId = staffUser.Id, RoleId = staffRole.Id },
-                new UserRole { UserId = directorUser.Id, RoleId = directorRole.Id },
-                new UserRole { UserId = purchasingUser.Id, RoleId = purchasingRole.Id },
-                new UserRole { UserId = salesUser.Id, RoleId = salesRole.Id }
-            };
-            await context.UserRoles.AddRangeAsync(userRoles);
-            await context.SaveChangesAsync();
+                var userRoles = new List<UserRole>();
+                if (adminUser != null && adminRole != null) userRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id });
+                if (managerUser != null && managerRole != null) userRoles.Add(new UserRole { UserId = managerUser.Id, RoleId = managerRole.Id });
+                if (staffUser != null && staffRole != null) userRoles.Add(new UserRole { UserId = staffUser.Id, RoleId = staffRole.Id });
+                if (directorUser != null && directorRole != null) userRoles.Add(new UserRole { UserId = directorUser.Id, RoleId = directorRole.Id });
+                if (purchasingUser != null && purchasingRole != null) userRoles.Add(new UserRole { UserId = purchasingUser.Id, RoleId = purchasingRole.Id });
+                if (salesUser != null && salesRole != null) userRoles.Add(new UserRole { UserId = salesUser.Id, RoleId = salesRole.Id });
+
+                await context.UserRoles.AddRangeAsync(userRoles);
+                await context.SaveChangesAsync();
+            }
         }
         else
         {
@@ -90,16 +105,16 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        // Fetch users references for foreign key assignments
-        var admin = await context.Users.FirstAsync(u => u.Username == "admin");
-        var manager = await context.Users.FirstAsync(u => u.Username == "manager01");
-        var staff = await context.Users.FirstAsync(u => u.Username == "staff01");
-        var director = await context.Users.FirstAsync(u => u.Username == "director01");
-        var purchasing = await context.Users.FirstAsync(u => u.Username == "purchasing01");
-        var sales = await context.Users.FirstAsync(u => u.Username == "sales01");
+        // Fetch users references safely
+        var admin = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin") ?? await context.Users.FirstAsync();
+        var manager = await context.Users.FirstOrDefaultAsync(u => u.Username == "manager01") ?? admin;
+        var staff = await context.Users.FirstOrDefaultAsync(u => u.Username == "staff01") ?? admin;
+        var director = await context.Users.FirstOrDefaultAsync(u => u.Username == "director01") ?? admin;
+        var purchasing = await context.Users.FirstOrDefaultAsync(u => u.Username == "purchasing01") ?? admin;
+        var sales = await context.Users.FirstOrDefaultAsync(u => u.Username == "sales01") ?? admin;
 
         // 3. Units of Measure (UoM)
-        if (!await context.UnitsOfMeasure.AnyAsync())
+        if (!await context.UnitsOfMeasure.AnyAsync(u => u.Code == "PCS"))
         {
             var uoms = new List<UnitOfMeasure>
             {
@@ -112,12 +127,18 @@ public static class DataSeeder
                 new UnitOfMeasure { Code = "BAG", Name = "Túi", NameEn = "Bag", IsActive = true },
                 new UnitOfMeasure { Code = "CBM", Name = "Mét khối", NameEn = "Cubic Meter", IsActive = true }
             };
-            await context.UnitsOfMeasure.AddRangeAsync(uoms);
+            foreach (var uom in uoms)
+            {
+                if (!await context.UnitsOfMeasure.AnyAsync(x => x.Code == uom.Code))
+                {
+                    await context.UnitsOfMeasure.AddAsync(uom);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
         // 4. Product Categories
-        if (!await context.Categories.AnyAsync())
+        if (!await context.Categories.AnyAsync(c => c.Code == "CAT-FOOD"))
         {
             var categories = new List<ProductCategory>
             {
@@ -126,36 +147,54 @@ public static class DataSeeder
                 new ProductCategory { Code = "CAT-MILK", Name = "Sữa & Chế phẩm", NameEn = "Dairy Products", IsActive = true, CreatedAt = DateTime.UtcNow },
                 new ProductCategory { Code = "CAT-CHEM", Name = "Hóa mỹ phẩm", NameEn = "Personal Care & Chemicals", IsActive = true, CreatedAt = DateTime.UtcNow }
             };
-            await context.Categories.AddRangeAsync(categories);
+            foreach (var cat in categories)
+            {
+                if (!await context.Categories.AnyAsync(x => x.Code == cat.Code))
+                {
+                    await context.Categories.AddAsync(cat);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
         // 5. Suppliers
-        if (!await context.Suppliers.AnyAsync())
+        if (!await context.Suppliers.AnyAsync(s => s.Code == "SUP-001"))
         {
             var suppliers = new List<Supplier>
             {
                 new Supplier { Code = "SUP-001", Name = "Công ty TNHH THVL", TaxCode = "0101234567", Address = "Lô B2, KCN Cát Lái, TP.HCM", Email = "contact@thvl.com.vn", Phone = "028.3812.3456", ContactPerson = "Nguyễn Văn Hùng", ContractNumber = "HD-SUP-2026-01", Status = SupplierStatus.Active, IsActive = true, CreatedAt = DateTime.UtcNow },
                 new Supplier { Code = "SUP-002", Name = "Tập đoàn Thực phẩm Á Châu", TaxCode = "0309876543", Address = "123 Nguyễn Văn Linh, Q.7, TP.HCM", Email = "info@achau.vn", Phone = "028.3999.8888", ContactPerson = "Trần Thị Mai", ContractNumber = "HD-SUP-2026-02", Status = SupplierStatus.Active, IsActive = true, CreatedAt = DateTime.UtcNow }
             };
-            await context.Suppliers.AddRangeAsync(suppliers);
+            foreach (var sup in suppliers)
+            {
+                if (!await context.Suppliers.AnyAsync(x => x.Code == sup.Code))
+                {
+                    await context.Suppliers.AddAsync(sup);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
         // 6. Customers
-        if (!await context.Customers.AnyAsync())
+        if (!await context.Customers.AnyAsync(c => c.Code == "CUST-001"))
         {
             var customers = new List<Customer>
             {
                 new Customer { Code = "CUST-001", Name = "Chuỗi Siêu thị Mega Market", CustomerType = CustomerType.B2BService, TaxCode = "0312345678", Address = "456 Xa lộ Hà Nội, TP. Thủ Đức", Email = "purchasing@megamarket.vn", Phone = "028.3777.6666", ContactPerson = "Lê Hoàng Nam", IsActive = true, CreatedAt = DateTime.UtcNow },
                 new Customer { Code = "CUST-002", Name = "Đại lý Ký gửi An Bình", CustomerType = CustomerType.Consignee, TaxCode = "0319876543", Address = "789 Lê Văn Việt, Q.9, TP.HCM", Email = "anbinh.store@gmail.com", Phone = "0908.123.456", ContactPerson = "Phạm Tuyết Anh", IsActive = true, CreatedAt = DateTime.UtcNow }
             };
-            await context.Customers.AddRangeAsync(customers);
+            foreach (var cust in customers)
+            {
+                if (!await context.Customers.AnyAsync(x => x.Code == cust.Code))
+                {
+                    await context.Customers.AddAsync(cust);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
         // 7. Warehouse & Hierarchy (Warehouse -> Zone -> Rack -> Shelf -> Bin)
-        if (!await context.Warehouses.AnyAsync())
+        if (!await context.Warehouses.AnyAsync(w => w.Code == "WH-CENTRAL"))
         {
             var warehouse = new Warehouse
             {
@@ -192,13 +231,13 @@ public static class DataSeeder
         }
 
         // 8. Products
-        if (!await context.Products.AnyAsync())
+        if (!await context.Products.AnyAsync(p => p.SKU == "SKU-FOOD-001"))
         {
-            var foodCat = await context.Categories.FirstAsync(c => c.Code == "CAT-FOOD");
-            var bevCat = await context.Categories.FirstAsync(c => c.Code == "CAT-BEV");
-            var boxUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "BOX");
-            var btlUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "BTL");
-            var ctnUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "CTN");
+            var foodCat = await context.Categories.FirstOrDefaultAsync(c => c.Code == "CAT-FOOD") ?? await context.Categories.FirstAsync();
+            var bevCat = await context.Categories.FirstOrDefaultAsync(c => c.Code == "CAT-BEV") ?? foodCat;
+            var boxUom = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "BOX") ?? await context.UnitsOfMeasure.FirstAsync();
+            var btlUom = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "BTL") ?? boxUom;
+            var ctnUom = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "CTN") ?? boxUom;
 
             var products = new List<Product>
             {
@@ -254,27 +293,33 @@ public static class DataSeeder
                     CreatedAt = DateTime.UtcNow
                 }
             };
-            await context.Products.AddRangeAsync(products);
+            foreach (var prod in products)
+            {
+                if (!await context.Products.AnyAsync(x => x.SKU == prod.SKU))
+                {
+                    await context.Products.AddAsync(prod);
+                }
+            }
             await context.SaveChangesAsync();
         }
 
-        // Fetch master references
-        var product1 = await context.Products.FirstAsync(p => p.SKU == "SKU-FOOD-001");
-        var product2 = await context.Products.FirstAsync(p => p.SKU == "SKU-BEV-009");
-        var product3 = await context.Products.FirstAsync(p => p.SKU == "SKU-FOOD-002");
+        // Fetch master references safely with fallbacks
+        var product1 = await context.Products.FirstOrDefaultAsync(p => p.SKU == "SKU-FOOD-001") ?? await context.Products.FirstAsync();
+        var product2 = await context.Products.FirstOrDefaultAsync(p => p.SKU == "SKU-BEV-009") ?? product1;
+        var product3 = await context.Products.FirstOrDefaultAsync(p => p.SKU == "SKU-FOOD-002") ?? product1;
 
-        var supplier1 = await context.Suppliers.FirstAsync(s => s.Code == "SUP-001");
-        var supplier2 = await context.Suppliers.FirstAsync(s => s.Code == "SUP-002");
+        var supplier1 = await context.Suppliers.FirstOrDefaultAsync(s => s.Code == "SUP-001") ?? await context.Suppliers.FirstAsync();
+        var supplier2 = await context.Suppliers.FirstOrDefaultAsync(s => s.Code == "SUP-002") ?? supplier1;
 
-        var customer1 = await context.Customers.FirstAsync(c => c.Code == "CUST-001");
+        var customer1 = await context.Customers.FirstOrDefaultAsync(c => c.Code == "CUST-001") ?? await context.Customers.FirstAsync();
 
-        var warehouseMain = await context.Warehouses.FirstAsync(w => w.Code == "WH-CENTRAL");
-        var bin1 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S1-B01");
-        var bin2 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S2-B02");
-        var bin3 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S2-B03");
+        var warehouseMain = await context.Warehouses.FirstOrDefaultAsync(w => w.Code == "WH-CENTRAL") ?? await context.Warehouses.FirstAsync();
+        var bin1 = await context.Bins.FirstOrDefaultAsync(b => b.Code == "WH1-ZA-R1-S1-B01") ?? await context.Bins.FirstAsync();
+        var bin2 = await context.Bins.FirstOrDefaultAsync(b => b.Code == "WH1-ZA-R1-S2-B02") ?? bin1;
+        var bin3 = await context.Bins.FirstOrDefaultAsync(b => b.Code == "WH1-ZA-R1-S2-B03") ?? bin1;
 
         // 9. Batches & BinStocks
-        if (!await context.Batches.AnyAsync())
+        if (!await context.Batches.AnyAsync(b => b.LotNumber == "LOT-2026-0815"))
         {
             var batch1 = new Batch
             {
@@ -353,11 +398,11 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var batch1Ref = await context.Batches.FirstAsync(b => b.LotNumber == "LOT-2026-0815");
-        var batch2Ref = await context.Batches.FirstAsync(b => b.LotNumber == "LOT-2026-0910");
+        var batch1Ref = await context.Batches.FirstOrDefaultAsync(b => b.LotNumber == "LOT-2026-0815") ?? await context.Batches.FirstAsync();
+        var batch2Ref = await context.Batches.FirstOrDefaultAsync(b => b.LotNumber == "LOT-2026-0910") ?? batch1Ref;
 
         // 10. Purchase Orders (PO) & POLines
-        if (!await context.PurchaseOrders.AnyAsync())
+        if (!await context.PurchaseOrders.AnyAsync(po => po.PONumber == "PO-202607-00001"))
         {
             var po1 = new PurchaseOrder
             {
@@ -389,10 +434,10 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var po1Ref = await context.PurchaseOrders.FirstAsync(po => po.PONumber == "PO-202607-00001");
+        var po1Ref = await context.PurchaseOrders.FirstOrDefaultAsync(po => po.PONumber == "PO-202607-00001") ?? await context.PurchaseOrders.FirstAsync();
 
         // 11. Goods Receipt Notes (GRN) & GRNLines
-        if (!await context.GoodsReceiptNotes.AnyAsync())
+        if (!await context.GoodsReceiptNotes.AnyAsync(g => g.GRNNumber == "GRN-202607-00001"))
         {
             var grn1 = new GoodsReceiptNote
             {
@@ -455,10 +500,10 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var grn1Ref = await context.GoodsReceiptNotes.FirstAsync(g => g.GRNNumber == "GRN-202607-00001");
+        var grn1Ref = await context.GoodsReceiptNotes.FirstOrDefaultAsync(g => g.GRNNumber == "GRN-202607-00001") ?? await context.GoodsReceiptNotes.FirstAsync();
 
         // 12. Dispatch Requests & Goods Dispatch Notes (GDN) & GDNLines
-        if (!await context.DispatchRequests.AnyAsync())
+        if (!await context.DispatchRequests.AnyAsync(dr => dr.RequestNumber == "DR-202607-00001"))
         {
             var dr1 = new DispatchRequest
             {
@@ -477,9 +522,9 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var dr1Ref = await context.DispatchRequests.FirstAsync(dr => dr.RequestNumber == "DR-202607-00001");
+        var dr1Ref = await context.DispatchRequests.FirstOrDefaultAsync(dr => dr.RequestNumber == "DR-202607-00001") ?? await context.DispatchRequests.FirstAsync();
 
-        if (!await context.GoodsDispatchNotes.AnyAsync())
+        if (!await context.GoodsDispatchNotes.AnyAsync(g => g.GDNNumber == "GDN-202607-00001"))
         {
             var gdn1 = new GoodsDispatchNote
             {
@@ -541,10 +586,10 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var gdn1Ref = await context.GoodsDispatchNotes.FirstAsync(g => g.GDNNumber == "GDN-202607-00001");
+        var gdn1Ref = await context.GoodsDispatchNotes.FirstOrDefaultAsync(g => g.GDNNumber == "GDN-202607-00001") ?? await context.GoodsDispatchNotes.FirstAsync();
 
         // 13. Transfer Orders & Lines
-        if (!await context.TransferOrders.AnyAsync())
+        if (!await context.TransferOrders.AnyAsync(t => t.TransferNumber == "TR-202607-00001"))
         {
             var transfer1 = new TransferOrder
             {
@@ -577,7 +622,7 @@ public static class DataSeeder
         }
 
         // 14. Stock Counts & Lines
-        if (!await context.StockCounts.AnyAsync())
+        if (!await context.StockCounts.AnyAsync(sc => sc.CountNumber == "SC-202607-00001"))
         {
             var count1 = new StockCount
             {
@@ -613,10 +658,10 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        var count1Ref = await context.StockCounts.FirstAsync(sc => sc.CountNumber == "SC-202607-00001");
+        var count1Ref = await context.StockCounts.FirstOrDefaultAsync(sc => sc.CountNumber == "SC-202607-00001") ?? await context.StockCounts.FirstAsync();
 
         // 15. Stock Adjustments & Lines
-        if (!await context.StockAdjustments.AnyAsync())
+        if (!await context.StockAdjustments.AnyAsync(sa => sa.AdjNumber == "SA-202607-00001"))
         {
             var adj1 = new StockAdjustment
             {
@@ -725,35 +770,38 @@ public static class DataSeeder
 
         if (!await context.Approvals.AnyAsync())
         {
-            var grn2Ref = await context.GoodsReceiptNotes.FirstAsync(g => g.GRNNumber == "GRN-202607-00002");
-            var gdn2Ref = await context.GoodsDispatchNotes.FirstAsync(g => g.GDNNumber == "GDN-202607-00002");
+            var grn2Ref = await context.GoodsReceiptNotes.FirstOrDefaultAsync(g => g.GRNNumber == "GRN-202607-00002");
+            var gdn2Ref = await context.GoodsDispatchNotes.FirstOrDefaultAsync(g => g.GDNNumber == "GDN-202607-00002");
 
-            var approvals = new List<Approval>
+            if (grn2Ref != null && gdn2Ref != null)
             {
-                // Approval pending L1 for GRN-202607-00002
-                new Approval
+                var approvals = new List<Approval>
                 {
-                    DocumentType = DocumentType.Grn,
-                    DocumentId = grn2Ref.Id,
-                    Level = ApprovalLevel.L1Manager,
-                    Status = ApprovalStatus.Pending,
-                    Comment = "Yêu cầu Trưởng kho Nguyễn Văn A phê duyệt nhập kho đợt 2",
-                    CreatedAt = DateTime.UtcNow
-                },
-                // Approval pending L2 for GDN-202607-00002
-                new Approval
-                {
-                    DocumentType = DocumentType.Gdn,
-                    DocumentId = gdn2Ref.Id,
-                    Level = ApprovalLevel.L2Director,
-                    Status = ApprovalStatus.Pending,
-                    Comment = "Yêu cầu Giám đốc Lê Văn C phê duyệt xuất kho giá trị cao",
-                    CreatedAt = DateTime.UtcNow
-                }
-            };
+                    // Approval pending L1 for GRN-202607-00002
+                    new Approval
+                    {
+                        DocumentType = DocumentType.Grn,
+                        DocumentId = grn2Ref.Id,
+                        Level = ApprovalLevel.L1Manager,
+                        Status = ApprovalStatus.Pending,
+                        Comment = "Yêu cầu Trưởng kho Nguyễn Văn A phê duyệt nhập kho đợt 2",
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    // Approval pending L2 for GDN-202607-00002
+                    new Approval
+                    {
+                        DocumentType = DocumentType.Gdn,
+                        DocumentId = gdn2Ref.Id,
+                        Level = ApprovalLevel.L2Director,
+                        Status = ApprovalStatus.Pending,
+                        Comment = "Yêu cầu Giám đốc Lê Văn C phê duyệt xuất kho giá trị cao",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
 
-            await context.Approvals.AddRangeAsync(approvals);
-            await context.SaveChangesAsync();
+                await context.Approvals.AddRangeAsync(approvals);
+                await context.SaveChangesAsync();
+            }
         }
 
         // 19. Notifications
