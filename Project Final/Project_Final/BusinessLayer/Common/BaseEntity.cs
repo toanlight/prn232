@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BusinessLayer.Common;
 
 /// <summary>
@@ -5,5 +7,6 @@ namespace BusinessLayer.Common;
 /// </summary>
 public abstract class BaseEntity
 {
+    [Key]
     public int Id { get; set; }
 }
