@@ -33,7 +33,7 @@ public static class DataSeeder
         }
 
         // 2. Users (Password default: "123456" hashed with BCrypt)
-        string defaultPasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
+        string defaultPasswordHash = BCrypt.Net.BCrypt.HashPassword("123456");
 
         if (!await context.Users.AnyAsync())
         {
@@ -74,6 +74,19 @@ public static class DataSeeder
                 new UserRole { UserId = salesUser.Id, RoleId = salesRole.Id }
             };
             await context.UserRoles.AddRangeAsync(userRoles);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            // Ensure existing users have valid password hash
+            var existingUsers = await context.Users.ToListAsync();
+            foreach (var user in existingUsers)
+            {
+                if (!BCrypt.Net.BCrypt.Verify("123456", user.PasswordHash))
+                {
+                    user.PasswordHash = defaultPasswordHash;
+                }
+            }
             await context.SaveChangesAsync();
         }
 
