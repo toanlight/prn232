@@ -90,6 +90,14 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
+        // Fetch users references for foreign key assignments
+        var admin = await context.Users.FirstAsync(u => u.Username == "admin");
+        var manager = await context.Users.FirstAsync(u => u.Username == "manager01");
+        var staff = await context.Users.FirstAsync(u => u.Username == "staff01");
+        var director = await context.Users.FirstAsync(u => u.Username == "director01");
+        var purchasing = await context.Users.FirstAsync(u => u.Username == "purchasing01");
+        var sales = await context.Users.FirstAsync(u => u.Username == "sales01");
+
         // 3. Units of Measure (UoM)
         if (!await context.UnitsOfMeasure.AnyAsync())
         {
@@ -149,14 +157,12 @@ public static class DataSeeder
         // 7. Warehouse & Hierarchy (Warehouse -> Zone -> Rack -> Shelf -> Bin)
         if (!await context.Warehouses.AnyAsync())
         {
-            var managerUser = await context.Users.FirstAsync(u => u.Username == "manager01");
-
             var warehouse = new Warehouse
             {
                 Code = "WH-CENTRAL",
                 Name = "Kho Tổng Trung Tâm",
                 Address = "Lô C4, Đường số 2, KCN Tân Bình, TP. Hồ Chí Minh",
-                ManagerUserId = managerUser.Id,
+                ManagerUserId = manager.Id,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -178,9 +184,10 @@ public static class DataSeeder
             await context.Shelves.AddRangeAsync(shelf1, shelf2);
             await context.SaveChangesAsync();
 
-            var bin1 = new Bin { ShelfId = shelf1.Id, Code = "WH1-ZA-R1-S1-B01", Name = "Bin B-01 (A-R1-S1)", MaxCapacity = 1000, CapacityUnit = "KG", IsActive = true };
-            var bin2 = new Bin { ShelfId = shelf2.Id, Code = "WH1-ZA-R1-S2-B02", Name = "Bin B-02 (A-R1-S2)", MaxCapacity = 1000, CapacityUnit = "KG", IsActive = true };
-            await context.Bins.AddRangeAsync(bin1, bin2);
+            var b1 = new Bin { ShelfId = shelf1.Id, Code = "WH1-ZA-R1-S1-B01", Name = "Bin B-01 (A-R1-S1)", MaxCapacity = 1000, CapacityUnit = "KG", IsActive = true };
+            var b2 = new Bin { ShelfId = shelf2.Id, Code = "WH1-ZA-R1-S2-B02", Name = "Bin B-02 (A-R1-S2)", MaxCapacity = 1000, CapacityUnit = "KG", IsActive = true };
+            var b3 = new Bin { ShelfId = shelf2.Id, Code = "WH1-ZA-R1-S2-B03", Name = "Bin B-03 (A-R1-S2)", MaxCapacity = 500, CapacityUnit = "KG", IsActive = true };
+            await context.Bins.AddRangeAsync(b1, b2, b3);
             await context.SaveChangesAsync();
         }
 
@@ -191,7 +198,7 @@ public static class DataSeeder
             var bevCat = await context.Categories.FirstAsync(c => c.Code == "CAT-BEV");
             var boxUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "BOX");
             var btlUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "BTL");
-            var adminUser = await context.Users.FirstAsync(u => u.Username == "admin");
+            var ctnUom = await context.UnitsOfMeasure.FirstAsync(u => u.Code == "CTN");
 
             var products = new List<Product>
             {
@@ -209,7 +216,7 @@ public static class DataSeeder
                     IsExpiryTracked = true,
                     ExpiryWarningDays = 30,
                     IsActive = true,
-                    CreatedBy = adminUser.Id,
+                    CreatedBy = admin.Id,
                     CreatedAt = DateTime.UtcNow
                 },
                 new Product
@@ -226,7 +233,24 @@ public static class DataSeeder
                     IsExpiryTracked = true,
                     ExpiryWarningDays = 30,
                     IsActive = true,
-                    CreatedBy = adminUser.Id,
+                    CreatedBy = admin.Id,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new Product
+                {
+                    SKU = "SKU-FOOD-002",
+                    Name = "Bột mì đa dụng Meizan 1kg",
+                    NameEn = "Meizan All Purpose Flour 1kg",
+                    Barcode = "8934567890333",
+                    CategoryId = foodCat.Id,
+                    UomId = ctnUom.Id,
+                    MinStock = 20,
+                    ReorderPoint = 40,
+                    IsBatchTracked = true,
+                    IsExpiryTracked = true,
+                    ExpiryWarningDays = 60,
+                    IsActive = true,
+                    CreatedBy = admin.Id,
                     CreatedAt = DateTime.UtcNow
                 }
             };
@@ -234,43 +258,64 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        // 9. Batches & BinStock
+        // Fetch master references
+        var product1 = await context.Products.FirstAsync(p => p.SKU == "SKU-FOOD-001");
+        var product2 = await context.Products.FirstAsync(p => p.SKU == "SKU-BEV-009");
+        var product3 = await context.Products.FirstAsync(p => p.SKU == "SKU-FOOD-002");
+
+        var supplier1 = await context.Suppliers.FirstAsync(s => s.Code == "SUP-001");
+        var supplier2 = await context.Suppliers.FirstAsync(s => s.Code == "SUP-002");
+
+        var customer1 = await context.Customers.FirstAsync(c => c.Code == "CUST-001");
+
+        var warehouseMain = await context.Warehouses.FirstAsync(w => w.Code == "WH-CENTRAL");
+        var bin1 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S1-B01");
+        var bin2 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S2-B02");
+        var bin3 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S2-B03");
+
+        // 9. Batches & BinStocks
         if (!await context.Batches.AnyAsync())
         {
-            var product1 = await context.Products.FirstAsync(p => p.SKU == "SKU-FOOD-001");
-            var product2 = await context.Products.FirstAsync(p => p.SKU == "SKU-BEV-009");
-            var supplier = await context.Suppliers.FirstAsync();
-            var staffUser = await context.Users.FirstAsync(u => u.Username == "staff01");
-            var bin1 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S1-B01");
-            var bin2 = await context.Bins.FirstAsync(b => b.Code == "WH1-ZA-R1-S2-B02");
-
             var batch1 = new Batch
             {
                 ProductId = product1.Id,
-                SupplierId = supplier.Id,
+                SupplierId = supplier1.Id,
                 LotNumber = "LOT-2026-0815",
                 MfgDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-5)),
-                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(22)),
-                InitialQty = 250,
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(22)), // Expiring soon <= 30 days
+                InitialQty = 500,
                 Status = BatchStatus.Active,
-                CreatedBy = staffUser.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-10)
             };
 
             var batch2 = new Batch
             {
                 ProductId = product2.Id,
-                SupplierId = supplier.Id,
+                SupplierId = supplier2.Id,
                 LotNumber = "LOT-2026-0910",
                 MfgDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-3)),
-                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(48)),
-                InitialQty = 150,
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(48)), // Normal
+                InitialQty = 300,
                 Status = BatchStatus.Active,
-                CreatedBy = staffUser.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-5)
             };
 
-            await context.Batches.AddRangeAsync(batch1, batch2);
+            var batch3 = new Batch
+            {
+                ProductId = product3.Id,
+                SupplierId = supplier1.Id,
+                LotNumber = "LOT-2025-1201",
+                MfgDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-12)),
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-15)), // Expired
+                InitialQty = 100,
+                Status = BatchStatus.Expired,
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-60)
+            };
+
+            await context.Batches.AddRangeAsync(batch1, batch2, batch3);
             await context.SaveChangesAsync();
 
             // BinStocks
@@ -279,7 +324,7 @@ public static class DataSeeder
                 BinId = bin1.Id,
                 ProductId = product1.Id,
                 BatchId = batch1.Id,
-                Quantity = 250,
+                Quantity = 350,
                 ReservedQty = 50,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -289,16 +334,367 @@ public static class DataSeeder
                 BinId = bin2.Id,
                 ProductId = product2.Id,
                 BatchId = batch2.Id,
-                Quantity = 150,
+                Quantity = 200,
+                ReservedQty = 20,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var binStock3 = new BinStock
+            {
+                BinId = bin3.Id,
+                ProductId = product3.Id,
+                BatchId = batch3.Id,
+                Quantity = 100,
                 ReservedQty = 0,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            await context.BinStocks.AddRangeAsync(binStock1, binStock2);
+            await context.BinStocks.AddRangeAsync(binStock1, binStock2, binStock3);
             await context.SaveChangesAsync();
         }
 
-        // 10. SystemSettings
+        var batch1Ref = await context.Batches.FirstAsync(b => b.LotNumber == "LOT-2026-0815");
+        var batch2Ref = await context.Batches.FirstAsync(b => b.LotNumber == "LOT-2026-0910");
+
+        // 10. Purchase Orders (PO) & POLines
+        if (!await context.PurchaseOrders.AnyAsync())
+        {
+            var po1 = new PurchaseOrder
+            {
+                PONumber = "PO-202607-00001",
+                SupplierId = supplier1.Id,
+                WarehouseId = warehouseMain.Id,
+                OrderDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-7)),
+                ExpectedDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)),
+                Notes = "Đơn mua hàng thực phẩm định kỳ tháng 7",
+                Status = "APPROVED",
+                CreatedBy = purchasing.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-7)
+            };
+
+            await context.PurchaseOrders.AddAsync(po1);
+            await context.SaveChangesAsync();
+
+            var poLine1 = new POLine
+            {
+                POId = po1.Id,
+                ProductId = product1.Id,
+                OrderedQty = 500,
+                ReceivedQty = 500,
+                UnitPrice = 25000,
+                Notes = "Giao đủ 500 hộp"
+            };
+
+            await context.POLines.AddAsync(poLine1);
+            await context.SaveChangesAsync();
+        }
+
+        var po1Ref = await context.PurchaseOrders.FirstAsync(po => po.PONumber == "PO-202607-00001");
+
+        // 11. Goods Receipt Notes (GRN) & GRNLines
+        if (!await context.GoodsReceiptNotes.AnyAsync())
+        {
+            var grn1 = new GoodsReceiptNote
+            {
+                GRNNumber = "GRN-202607-00001",
+                POId = po1Ref.Id,
+                SupplierId = supplier1.Id,
+                WarehouseId = warehouseMain.Id,
+                ReceiptDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-5)),
+                Notes = "Nhập kho đợt 1 theo PO-202607-00001",
+                Status = DocumentStatus.Approved,
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                CompletedAt = DateTime.UtcNow.AddDays(-5)
+            };
+
+            var grn2 = new GoodsReceiptNote
+            {
+                GRNNumber = "GRN-202607-00002",
+                SupplierId = supplier2.Id,
+                WarehouseId = warehouseMain.Id,
+                ReceiptDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                Notes = "Nhập kho trực tiếp nước ép cam",
+                Status = DocumentStatus.PendingL1,
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await context.GoodsReceiptNotes.AddRangeAsync(grn1, grn2);
+            await context.SaveChangesAsync();
+
+            var grnLine1 = new GRNLine
+            {
+                GRNId = grn1.Id,
+                ProductId = product1.Id,
+                BatchId = batch1Ref.Id,
+                BinId = bin1.Id,
+                Quantity = 500,
+                LotNumber = "LOT-2026-0815",
+                MfgDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-5)),
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(22)),
+                UnitPrice = 25000,
+                Notes = "Đã vào bin B01"
+            };
+
+            var grnLine2 = new GRNLine
+            {
+                GRNId = grn2.Id,
+                ProductId = product2.Id,
+                BatchId = batch2Ref.Id,
+                BinId = bin2.Id,
+                Quantity = 300,
+                LotNumber = "LOT-2026-0910",
+                MfgDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-3)),
+                ExpiryDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(48)),
+                UnitPrice = 18000,
+                Notes = "Chờ duyệt L1"
+            };
+
+            await context.GRNLines.AddRangeAsync(grnLine1, grnLine2);
+            await context.SaveChangesAsync();
+        }
+
+        var grn1Ref = await context.GoodsReceiptNotes.FirstAsync(g => g.GRNNumber == "GRN-202607-00001");
+
+        // 12. Dispatch Requests & Goods Dispatch Notes (GDN) & GDNLines
+        if (!await context.DispatchRequests.AnyAsync())
+        {
+            var dr1 = new DispatchRequest
+            {
+                RequestNumber = "DR-202607-00001",
+                CustomerId = customer1.Id,
+                WarehouseId = warehouseMain.Id,
+                RequestDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-3)),
+                RequiredDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+                Notes = "Xuất kho siêu thị Mega Market",
+                Status = "APPROVED",
+                CreatedBy = sales.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-3)
+            };
+
+            await context.DispatchRequests.AddAsync(dr1);
+            await context.SaveChangesAsync();
+        }
+
+        var dr1Ref = await context.DispatchRequests.FirstAsync(dr => dr.RequestNumber == "DR-202607-00001");
+
+        if (!await context.GoodsDispatchNotes.AnyAsync())
+        {
+            var gdn1 = new GoodsDispatchNote
+            {
+                GDNNumber = "GDN-202607-00001",
+                RequestId = dr1Ref.Id,
+                CustomerId = customer1.Id,
+                WarehouseId = warehouseMain.Id,
+                DispatchDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)),
+                DeliveryAddress = "456 Xa lộ Hà Nội, TP. Thủ Đức",
+                Notes = "Đã hoàn thành xuất kho & giao đơn",
+                Status = DocumentStatus.Delivered,
+                PickedBy = staff.Id,
+                PickedAt = DateTime.UtcNow.AddDays(-2),
+                DeliveredBy = staff.Id,
+                DeliveredAt = DateTime.UtcNow.AddDays(-1),
+                CreatedBy = sales.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-3)
+            };
+
+            var gdn2 = new GoodsDispatchNote
+            {
+                GDNNumber = "GDN-202607-00002",
+                CustomerId = customer1.Id,
+                WarehouseId = warehouseMain.Id,
+                DispatchDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                DeliveryAddress = "789 Lê Văn Việt, Q.9, TP.HCM",
+                Notes = "Đơn xuất kho gấp chờ duyệt L2 Giám đốc",
+                Status = DocumentStatus.PendingL2,
+                CreatedBy = sales.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await context.GoodsDispatchNotes.AddRangeAsync(gdn1, gdn2);
+            await context.SaveChangesAsync();
+
+            var gdnLine1 = new GDNLine
+            {
+                GDNId = gdn1.Id,
+                ProductId = product1.Id,
+                BatchId = batch1Ref.Id,
+                BinId = bin1.Id,
+                RequestedQty = 150,
+                PickedQty = 150,
+                Notes = "FEFO xuất lô hết hạn trước"
+            };
+
+            var gdnLine2 = new GDNLine
+            {
+                GDNId = gdn2.Id,
+                ProductId = product2.Id,
+                BatchId = batch2Ref.Id,
+                BinId = bin2.Id,
+                RequestedQty = 100,
+                PickedQty = 0,
+                Notes = "Chờ duyệt L2"
+            };
+
+            await context.GDNLines.AddRangeAsync(gdnLine1, gdnLine2);
+            await context.SaveChangesAsync();
+        }
+
+        var gdn1Ref = await context.GoodsDispatchNotes.FirstAsync(g => g.GDNNumber == "GDN-202607-00001");
+
+        // 13. Transfer Orders & Lines
+        if (!await context.TransferOrders.AnyAsync())
+        {
+            var transfer1 = new TransferOrder
+            {
+                TransferNumber = "TR-202607-00001",
+                WarehouseId = warehouseMain.Id,
+                TransferDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
+                Reason = "Điều chuyển nội bộ từ Bin B01 sang Bin B02 để đảo kho",
+                Status = DocumentStatus.Completed,
+                CreatedBy = staff.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                CompletedAt = DateTime.UtcNow.AddDays(-1)
+            };
+
+            await context.TransferOrders.AddAsync(transfer1);
+            await context.SaveChangesAsync();
+
+            var transferLine1 = new TransferOrderLine
+            {
+                TransferId = transfer1.Id,
+                ProductId = product1.Id,
+                BatchId = batch1Ref.Id,
+                FromBinId = bin1.Id,
+                ToBinId = bin2.Id,
+                Quantity = 50,
+                Notes = "Đã hoàn thành đảo vị trí"
+            };
+
+            await context.TransferOrderLines.AddAsync(transferLine1);
+            await context.SaveChangesAsync();
+        }
+
+        // 14. Stock Counts & Lines
+        if (!await context.StockCounts.AnyAsync())
+        {
+            var count1 = new StockCount
+            {
+                CountNumber = "SC-202607-00001",
+                WarehouseId = warehouseMain.Id,
+                CountType = CountType.Periodic,
+                CountDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-4)),
+                PlannedBy = manager.Id,
+                Notes = "Kiểm kê định kỳ tháng 7 Zone A",
+                Status = "COMPLETED",
+                StartedAt = DateTime.UtcNow.AddDays(-4),
+                CompletedAt = DateTime.UtcNow.AddDays(-4),
+                CreatedAt = DateTime.UtcNow.AddDays(-5)
+            };
+
+            await context.StockCounts.AddAsync(count1);
+            await context.SaveChangesAsync();
+
+            var countLine1 = new StockCountLine
+            {
+                CountId = count1.Id,
+                BinId = bin1.Id,
+                ProductId = product1.Id,
+                BatchId = batch1Ref.Id,
+                SystemQty = 350,
+                ActualQty = 348, // Variance -2
+                CountedBy = staff.Id,
+                CountedAt = DateTime.UtcNow.AddDays(-4),
+                Notes = "Hao hụt 2 hộp do rách bao bì"
+            };
+
+            await context.StockCountLines.AddAsync(countLine1);
+            await context.SaveChangesAsync();
+        }
+
+        var count1Ref = await context.StockCounts.FirstAsync(sc => sc.CountNumber == "SC-202607-00001");
+
+        // 15. Stock Adjustments & Lines
+        if (!await context.StockAdjustments.AnyAsync())
+        {
+            var adj1 = new StockAdjustment
+            {
+                AdjNumber = "SA-202607-00001",
+                CountId = count1Ref.Id,
+                WarehouseId = warehouseMain.Id,
+                Reason = "Điều chỉnh giảm 2 hộp do hư hỏng kiểm kê SC-202607-00001",
+                Notes = "Đã duyệt điều chỉnh kho",
+                Status = DocumentStatus.Approved,
+                CreatedBy = manager.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-4),
+                ApprovedAt = DateTime.UtcNow.AddDays(-4)
+            };
+
+            await context.StockAdjustments.AddAsync(adj1);
+            await context.SaveChangesAsync();
+
+            var adjLine1 = new StockAdjustmentLine
+            {
+                AdjustmentId = adj1.Id,
+                BinId = bin1.Id,
+                ProductId = product1.Id,
+                BatchId = batch1Ref.Id,
+                BeforeQty = 350,
+                AfterQty = 348,
+                Notes = "Xuất hủy do hư hỏng"
+            };
+
+            await context.StockAdjustmentLines.AddAsync(adjLine1);
+            await context.SaveChangesAsync();
+        }
+
+        // 16. Stock Transactions (Lịch sử giao dịch nhập/xuất để vẽ biểu đồ Dashboard)
+        if (!await context.StockTransactions.AnyAsync())
+        {
+            var txns = new List<StockTransaction>
+            {
+                // Nhập kho 500 hộp sữa
+                new StockTransaction
+                {
+                    ProductId = product1.Id,
+                    BatchId = batch1Ref.Id,
+                    BinId = bin1.Id,
+                    TxnType = StockTxnType.GrnIn,
+                    DocumentType = DocumentType.Grn,
+                    DocumentId = grn1Ref.Id,
+                    DocumentNumber = grn1Ref.GRNNumber,
+                    Quantity = 500,
+                    QtyBefore = 0,
+                    QtyAfter = 500,
+                    Remarks = "Nhập kho theo GRN-202607-00001",
+                    CreatedBy = staff.Id,
+                    CreatedAt = DateTime.UtcNow.AddDays(-5)
+                },
+                // Xuất kho 150 hộp sữa
+                new StockTransaction
+                {
+                    ProductId = product1.Id,
+                    BatchId = batch1Ref.Id,
+                    BinId = bin1.Id,
+                    TxnType = StockTxnType.GdnOut,
+                    DocumentType = DocumentType.Gdn,
+                    DocumentId = gdn1Ref.Id,
+                    DocumentNumber = gdn1Ref.GDNNumber,
+                    Quantity = -150,
+                    QtyBefore = 500,
+                    QtyAfter = 350,
+                    Remarks = "Xuất kho bán hàng theo GDN-202607-00001",
+                    CreatedBy = staff.Id,
+                    CreatedAt = DateTime.UtcNow.AddDays(-2)
+                }
+            };
+
+            await context.StockTransactions.AddRangeAsync(txns);
+            await context.SaveChangesAsync();
+        }
+
+        // 17. SystemSettings
         if (!await context.SystemSettings.AnyAsync())
         {
             var settings = new List<SystemSetting>
@@ -313,7 +709,7 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
-        // 11. ApprovalWorkflows
+        // 18. ApprovalWorkflows & Approvals (Hộp thư duyệt L1/L2 thực tế)
         if (!await context.ApprovalWorkflows.AnyAsync())
         {
             var workflows = new List<ApprovalWorkflow>
@@ -324,6 +720,86 @@ public static class DataSeeder
                 new ApprovalWorkflow { DocumentType = DocumentType.Gdn, Level = 2, ApproverRoleCode = "DIRECTOR", Description = "Phê duyệt Phiếu xuất kho L2 - Giám đốc (Giá trị cao)", IsActive = true }
             };
             await context.ApprovalWorkflows.AddRangeAsync(workflows);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Approvals.AnyAsync())
+        {
+            var grn2Ref = await context.GoodsReceiptNotes.FirstAsync(g => g.GRNNumber == "GRN-202607-00002");
+            var gdn2Ref = await context.GoodsDispatchNotes.FirstAsync(g => g.GDNNumber == "GDN-202607-00002");
+
+            var approvals = new List<Approval>
+            {
+                // Approval pending L1 for GRN-202607-00002
+                new Approval
+                {
+                    DocumentType = DocumentType.Grn,
+                    DocumentId = grn2Ref.Id,
+                    Level = ApprovalLevel.L1Manager,
+                    Status = ApprovalStatus.Pending,
+                    Comment = "Yêu cầu Trưởng kho Nguyễn Văn A phê duyệt nhập kho đợt 2",
+                    CreatedAt = DateTime.UtcNow
+                },
+                // Approval pending L2 for GDN-202607-00002
+                new Approval
+                {
+                    DocumentType = DocumentType.Gdn,
+                    DocumentId = gdn2Ref.Id,
+                    Level = ApprovalLevel.L2Director,
+                    Status = ApprovalStatus.Pending,
+                    Comment = "Yêu cầu Giám đốc Lê Văn C phê duyệt xuất kho giá trị cao",
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+
+            await context.Approvals.AddRangeAsync(approvals);
+            await context.SaveChangesAsync();
+        }
+
+        // 19. Notifications
+        if (!await context.Notifications.AnyAsync())
+        {
+            var notifications = new List<Notification>
+            {
+                new Notification
+                {
+                    UserId = manager.Id,
+                    NotifType = "APPROVAL_REQ",
+                    Title = "Yêu cầu phê duyệt Phiếu Nhập GRN-202607-00002",
+                    TitleEn = "Approval Request for GRN-202607-00002",
+                    Body = "Phiếu nhập kho GRN-202607-00002 đang chờ bạn phê duyệt L1.",
+                    BodyEn = "GRN-202607-00002 is waiting for your L1 approval.",
+                    ReferenceType = "GRN",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new Notification
+                {
+                    UserId = director.Id,
+                    NotifType = "APPROVAL_REQ",
+                    Title = "Yêu cầu phê duyệt Phiếu Xuất GDN-202607-00002",
+                    TitleEn = "Approval Request for GDN-202607-00002",
+                    Body = "Phiếu xuất kho GDN-202607-00002 giá trị lớn đang chờ bạn phê duyệt L2.",
+                    BodyEn = "GDN-202607-00002 is waiting for your L2 approval.",
+                    ReferenceType = "GDN",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new Notification
+                {
+                    UserId = staff.Id,
+                    NotifType = "EXPIRY_WARN",
+                    Title = "Cảnh báo Lô hàng LOT-2026-0815 sắp hết hạn!",
+                    TitleEn = "Expiry Warning for Lot LOT-2026-0815!",
+                    Body = "Sản phẩm Sữa tươi 1L thuộc lô LOT-2026-0815 sẽ hết hạn trong vòng 22 ngày tới.",
+                    BodyEn = "Product Fresh Whole Milk 1L lot LOT-2026-0815 will expire in 22 days.",
+                    ReferenceType = "BATCH",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+
+            await context.Notifications.AddRangeAsync(notifications);
             await context.SaveChangesAsync();
         }
     }
