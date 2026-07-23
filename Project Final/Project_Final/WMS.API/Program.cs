@@ -22,7 +22,7 @@ builder.Services.AddHttpContextAccessor();
 
 // ──── JWT Authentication ────
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var secretKey = Encoding.UTF8.GetBytes(jwtSection["Key"] ?? jwtSection["Secret"]!);
+var secretKey = Encoding.UTF8.GetBytes(jwtSection["Secret"]);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -77,11 +77,12 @@ builder.Services.AddSwaggerGen(c =>
     });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.\nEnter: Bearer {your token}",
+        Description = "Dán JWT token của bạn vào đây (không cần nhập từ Bearer)",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {

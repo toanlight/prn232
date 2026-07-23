@@ -132,7 +132,7 @@ public class AuthService : IAuthService
     // Private helpers
     private string GenerateAccessToken(User user, List<string> roles)
     {
-        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key chưa được cấu hình.");
+        var jwtKey = _config["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret chưa được cấu hình.");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
