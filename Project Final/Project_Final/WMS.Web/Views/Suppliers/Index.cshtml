@@ -23,83 +23,211 @@
         </div>
     </form>
 
-    <table class="table table-hover align-middle fs-7">
-        <thead class="table-light">
-            <tr>
-                <th>Mã NCC</th>
-                <th>Tên Nhà cung cấp</th>
-                <th>Mã số thuế</th>
-                <th>Điện thoại</th>
-                <th>Email</th>
-                <th>Trạng thái</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.Data != null && Model.Data.Any())
-            {
-                @foreach (var item in Model.Data)
+    <div class="table-responsive">
+        <table class="table table-hover align-middle fs-7 text-nowrap">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã NCC</th>
+                    <th>Tên Nhà cung cấp</th>
+                    <th>Mã số thuế</th>
+                    <th>Địa chỉ</th>
+                    <th>Email</th>
+                    <th>Điện thoại</th>
+                    <th>Website</th>
+                    <th>Người liên hệ</th>
+                    <th>SĐT người liên hệ</th>
+                    <th>Số hợp đồng</th>
+                    <th>Ngày BĐ hợp đồng</th>
+                    <th>Ngày KT hợp đồng</th>
+                    <th>Điều khoản thanh toán</th>
+                    <th>Ghi chú</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Người tạo</th>
+                    <th>Ngày cập nhật</th>
+                    <th>Người cập nhật</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Data != null && Model.Data.Any())
+                {
+                    @foreach (var item in Model.Data)
+                    {
+                        var jsonItem = System.Text.Json.JsonSerializer.Serialize(item);
+                        <tr>
+                            <td class="fw-bold text-primary">@item.Code</td>
+                            <td>@item.Name</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.TaxCode) ? "N/A" : item.TaxCode)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Address) ? "N/A" : item.Address)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Email) ? "N/A" : item.Email)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Phone) ? "N/A" : item.Phone)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Website) ? "N/A" : item.Website)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ContactPerson) ? "N/A" : item.ContactPerson)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ContactPhone) ? "N/A" : item.ContactPhone)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ContractNumber) ? "N/A" : item.ContractNumber)</td>
+                            <td>@(item.ContractStartDate.HasValue ? item.ContractStartDate.Value.ToString("dd/MM/yyyy") : "N/A")</td>
+                            <td>@(item.ContractEndDate.HasValue ? item.ContractEndDate.Value.ToString("dd/MM/yyyy") : "N/A")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.PaymentTerms) ? "N/A" : item.PaymentTerms)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Notes) ? "N/A" : item.Notes)</td>
+                            <td>
+                                @if (item.Status == "Active" || item.Status == "0")
+                                {
+                                    <span class="badge bg-success">Hoạt động</span>
+                                }
+                                else if (item.Status == "Blacklisted" || item.Status == "2")
+                                {
+                                    <span class="badge bg-danger">Danh sách đen</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ngừng hoạt động</span>
+                                }
+                            </td>
+                            <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.CreatedBy) ? "N/A" : item.CreatedBy)</td>
+                            <td>@(item.UpdatedAt.HasValue ? item.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "N/A" : item.UpdatedBy)</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary me-1 py-0 px-2"
+                                        onclick="openEditModalFromBtn(this)"
+                                        data-id="@item.Id"
+                                        data-code="@item.Code"
+                                        data-name="@item.Name"
+                                        data-status="@item.Status"
+                                        data-taxcode="@item.TaxCode"
+                                        data-address="@item.Address"
+                                        data-email="@item.Email"
+                                        data-phone="@item.Phone"
+                                        data-website="@item.Website"
+                                        data-contactperson="@item.ContactPerson"
+                                        data-contactphone="@item.ContactPhone"
+                                        data-contractnumber="@item.ContractNumber"
+                                        data-contractstart="@(item.ContractStartDate.HasValue ? item.ContractStartDate.Value.ToString("yyyy-MM-dd") : "")"
+                                        data-contractend="@(item.ContractEndDate.HasValue ? item.ContractEndDate.Value.ToString("yyyy-MM-dd") : "")"
+                                        data-paymentterms="@item.PaymentTerms"
+                                        data-notes="@item.Notes"
+                                        title="Chỉnh sửa">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="confirmDeleteSupplier(@item.Id, '@item.Name')" title="Xóa nhà cung cấp">
+                                    <i class="fa-solid fa-trash me-1"></i>Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td class="fw-bold text-primary">@item.Code</td>
-                        <td>@item.Name</td>
-                        <td>@(item.TaxCode ?? "---")</td>
-                        <td>@(item.Phone ?? "---")</td>
-                        <td>@(item.Email ?? "---")</td>
-                        <td>
-                            @if (item.IsActive)
-                            {
-                                <span class="badge bg-success">Hoạt động</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Ngừng hoạt động</span>
-                            }
+                        <td colspan="20" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                            Chưa có dữ liệu nhà cung cấp nào.
                         </td>
                     </tr>
                 }
-            }
-            else
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model != null && Model.TotalCount > 0)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <div class="fs-7 text-muted">
+                Hiển thị <span class="fw-bold text-dark">@Model.Items.Count</span> / <span class="fw-bold text-dark">@Model.TotalCount</span> Nhà cung cấp
+            </div>
+            @if (Model.TotalPages > 1)
             {
-                <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">
-                        <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
-                        Chưa có dữ liệu nhà cung cấp nào.
-                    </td>
-                </tr>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" href="/Suppliers?pageIndex=@(Model.PageIndex - 1)&keyword=@ViewBag.Keyword">
+                                <i class="fa-solid fa-angle-left me-1"></i>Trước
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" href="/Suppliers?pageIndex=@i&keyword=@ViewBag.Keyword">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="/Suppliers?pageIndex=@(Model.PageIndex + 1)&keyword=@ViewBag.Keyword">
+                                Tiếp<i class="fa-solid fa-angle-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             }
-        </tbody>
-    </table>
+        </div>
+    }
 </div>
 
 <!-- Modal Thêm Nhà cung cấp -->
 <div class="modal fade" id="createSupplierModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">Thêm mới Nhà cung cấp</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body fs-7">
-                <form id="createSupplierForm">
-                    <div class="mb-2">
+                <form id="createSupplierForm" class="row g-2">
+                    <div class="col-md-6 mb-2">
                         <label class="form-label fw-semibold mb-1">Mã NCC *</label>
                         <input type="text" id="supCode" class="form-control form-control-sm" required placeholder="VD: SUP-003">
                     </div>
-                    <div class="mb-2">
+                    <div class="col-md-6 mb-2">
                         <label class="form-label fw-semibold mb-1">Tên Nhà cung cấp *</label>
                         <input type="text" id="supName" class="form-control form-control-sm" required placeholder="VD: Công ty TNHH Vận Tải">
                     </div>
-                    <div class="mb-2">
+                    <div class="col-md-6 mb-2">
                         <label class="form-label fw-semibold mb-1">Mã số thuế</label>
                         <input type="text" id="supTaxCode" class="form-control form-control-sm" placeholder="VD: 0101234567">
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Điện thoại</label>
-                        <input type="text" id="supPhone" class="form-control form-control-sm" placeholder="VD: 0901234567">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điện thoại *</label>
+                        <input type="text" id="supPhone" class="form-control form-control-sm" required placeholder="VD: 0901234567">
                     </div>
-                    <div class="mb-2">
+                    <div class="col-md-6 mb-2">
                         <label class="form-label fw-semibold mb-1">Email</label>
                         <input type="email" id="supEmail" class="form-control form-control-sm" placeholder="contact@domain.com">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Website</label>
+                        <input type="text" id="supWebsite" class="form-control form-control-sm" placeholder="https://domain.com">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Địa chỉ</label>
+                        <input type="text" id="supAddress" class="form-control form-control-sm" placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/TP">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Người liên hệ</label>
+                        <input type="text" id="supContactPerson" class="form-control form-control-sm" placeholder="VD: Nguyễn Văn A">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">SĐT người liên hệ</label>
+                        <input type="text" id="supContactPhone" class="form-control form-control-sm" placeholder="VD: 0912345678">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Số hợp đồng</label>
+                        <input type="text" id="supContractNumber" class="form-control form-control-sm" placeholder="VD: HD-2026-001">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ngày BĐ hợp đồng</label>
+                        <input type="date" id="supContractStartDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ngày KT hợp đồng</label>
+                        <input type="date" id="supContractEndDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điều khoản thanh toán</label>
+                        <input type="text" id="supPaymentTerms" class="form-control form-control-sm" placeholder="VD: Thanh toán trong 30 ngày">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ghi chú</label>
+                        <input type="text" id="supNotes" class="form-control form-control-sm" placeholder="Ghi chú thêm...">
                     </div>
                 </form>
             </div>
@@ -111,27 +239,223 @@
     </div>
 </div>
 
+<!-- Modal Cập nhật Nhà cung cấp -->
+<div class="modal fade" id="editSupplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cập nhật Nhà cung cấp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="editSupplierForm" class="row g-2">
+                    <input type="hidden" id="editSupId">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã NCC</label>
+                        <input type="text" id="editSupCode" class="form-control form-control-sm" disabled>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Nhà cung cấp *</label>
+                        <input type="text" id="editSupName" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã số thuế</label>
+                        <input type="text" id="editSupTaxCode" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điện thoại *</label>
+                        <input type="text" id="editSupPhone" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Email</label>
+                        <input type="email" id="editSupEmail" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Website</label>
+                        <input type="text" id="editSupWebsite" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Địa chỉ</label>
+                        <input type="text" id="editSupAddress" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Người liên hệ</label>
+                        <input type="text" id="editSupContactPerson" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">SĐT người liên hệ</label>
+                        <input type="text" id="editSupContactPhone" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Số hợp đồng</label>
+                        <input type="text" id="editSupContractNumber" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ngày BĐ hợp đồng</label>
+                        <input type="date" id="editSupContractStartDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ngày KT hợp đồng</label>
+                        <input type="date" id="editSupContractEndDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điều khoản thanh toán</label>
+                        <input type="text" id="editSupPaymentTerms" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Ghi chú</label>
+                        <input type="text" id="editSupNotes" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Trạng thái *</label>
+                        <select id="editSupStatus" class="form-select form-select-sm">
+                            <option value="0">Hoạt động</option>
+                            <option value="1">Ngừng hoạt động</option>
+                            <option value="2">Danh sách đen</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitUpdateSupplier()" class="btn btn-primary btn-sm">Cập nhật Nhà Cung Cấp</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function formatDateForInput(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        return d.toISOString().split('T')[0];
+    }
+
     async function submitCreateSupplier() {
         const payload = {
             code: document.getElementById('supCode').value,
             name: document.getElementById('supName').value,
-            taxCode: document.getElementById('supTaxCode').value,
-            phone: document.getElementById('supPhone').value,
-            email: document.getElementById('supEmail').value
+            taxCode: document.getElementById('supTaxCode').value || null,
+            address: document.getElementById('supAddress').value || null,
+            email: document.getElementById('supEmail').value || null,
+            phone: document.getElementById('supPhone').value || null,
+            website: document.getElementById('supWebsite').value || null,
+            contactPerson: document.getElementById('supContactPerson').value || null,
+            contactPhone: document.getElementById('supContactPhone').value || null,
+            contractNumber: document.getElementById('supContractNumber').value || null,
+            contractStartDate: document.getElementById('supContractStartDate').value || null,
+            contractEndDate: document.getElementById('supContractEndDate').value || null,
+            paymentTerms: document.getElementById('supPaymentTerms').value || null,
+            notes: document.getElementById('supNotes').value || null
         };
 
-        const res = await fetch('/Suppliers/Create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-            showToast('Success', data.message);
-            location.reload();
-        } else {
-            showToast('Error', data.message || 'Có lỗi xảy ra');
+        try {
+            const res = await fetch('/Suppliers/Create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('createSupplierModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Tạo nhà cung cấp thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể gửi yêu cầu: ' + err.message, 'danger');
         }
+    }
+
+    function openEditModalFromBtn(btn) {
+        document.getElementById('editSupId').value = btn.getAttribute('data-id') || '';
+        document.getElementById('editSupCode').value = btn.getAttribute('data-code') || '';
+        document.getElementById('editSupName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('editSupTaxCode').value = btn.getAttribute('data-taxcode') || '';
+        document.getElementById('editSupPhone').value = btn.getAttribute('data-phone') || '';
+        document.getElementById('editSupEmail').value = btn.getAttribute('data-email') || '';
+        document.getElementById('editSupWebsite').value = btn.getAttribute('data-website') || '';
+        document.getElementById('editSupAddress').value = btn.getAttribute('data-address') || '';
+        document.getElementById('editSupContactPerson').value = btn.getAttribute('data-contactperson') || '';
+        document.getElementById('editSupContactPhone').value = btn.getAttribute('data-contactphone') || '';
+        document.getElementById('editSupContractNumber').value = btn.getAttribute('data-contractnumber') || '';
+        document.getElementById('editSupContractStartDate').value = btn.getAttribute('data-contractstart') || '';
+        document.getElementById('editSupContractEndDate').value = btn.getAttribute('data-contractend') || '';
+        document.getElementById('editSupPaymentTerms').value = btn.getAttribute('data-paymentterms') || '';
+        document.getElementById('editSupNotes').value = btn.getAttribute('data-notes') || '';
+
+        let statusVal = '0';
+        const st = btn.getAttribute('data-status');
+        if (st === 'Inactive' || st === '1') statusVal = '1';
+        else if (st === 'Blacklisted' || st === '2') statusVal = '2';
+        document.getElementById('editSupStatus').value = statusVal;
+
+        const modal = new bootstrap.Modal(document.getElementById('editSupplierModal'));
+        modal.show();
+    }
+
+    async function submitUpdateSupplier() {
+        const id = document.getElementById('editSupId').value;
+        const payload = {
+            name: document.getElementById('editSupName').value,
+            taxCode: document.getElementById('editSupTaxCode').value || null,
+            address: document.getElementById('editSupAddress').value || null,
+            email: document.getElementById('editSupEmail').value || null,
+            phone: document.getElementById('editSupPhone').value || null,
+            website: document.getElementById('editSupWebsite').value || null,
+            contactPerson: document.getElementById('editSupContactPerson').value || null,
+            contactPhone: document.getElementById('editSupContactPhone').value || null,
+            contractNumber: document.getElementById('editSupContractNumber').value || null,
+            contractStartDate: document.getElementById('editSupContractStartDate').value || null,
+            contractEndDate: document.getElementById('editSupContractEndDate').value || null,
+            paymentTerms: document.getElementById('editSupPaymentTerms').value || null,
+            notes: document.getElementById('editSupNotes').value || null,
+            status: parseInt(document.getElementById('editSupStatus').value)
+        };
+
+        try {
+            const res = await fetch(`/Suppliers/Update/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('editSupplierModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Cập nhật thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể cập nhật: ' + err.message, 'danger');
+        }
+    }
+
+    function confirmDeleteSupplier(id, name) {
+        WMS.confirm('Xác nhận xóa nhà cung cấp', `Bạn có chắc chắn muốn xóa nhà cung cấp "${name}"?`, async () => {
+            try {
+                const res = await fetch(`/Suppliers/Delete/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    WMS.showToast(data.message || 'Đã xóa nhà cung cấp thành công!', 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+                }
+            } catch (err) {
+                WMS.showToast('Lỗi thao tác: ' + err.message, 'danger');
+            }
+        });
     }
 </script>

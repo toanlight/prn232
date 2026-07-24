@@ -83,6 +83,11 @@ const WMS = {
     }
 };
 
+window.WMS = WMS;
+window.showToast = function (message, type = 'success') {
+    WMS.showToast(message, type);
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     // Toggle sidebar on mobile
     const toggleBtn = document.getElementById('sidebarCollapse');

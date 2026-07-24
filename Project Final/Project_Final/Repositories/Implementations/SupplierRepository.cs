@@ -17,4 +17,6 @@ public class SupplierRepository : GenericRepository<Supplier>, ISupplierReposito
     public async Task<Supplier?> GetByCodeAsync(string code) => await _supplierDao.GetByCodeAsync(code);
     public async Task<(List<Supplier> Items, int TotalCount)> SearchAsync(string? keyword, bool? isActive, int pageIndex = 1, int pageSize = 10)
         => await _supplierDao.SearchAsync(keyword, isActive, pageIndex, pageSize);
+    public async Task<bool> HasSuppliedGoodsAsync(int supplierId)
+        => await _supplierDao.HasSuppliedGoodsAsync(supplierId);
 }
