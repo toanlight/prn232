@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using BusinessLayer.Common;
 using BusinessLayer.Enums;
+using BusinessLayer.Entities.Identity;
 using BusinessLayer.Entities.Orders;
 
 namespace BusinessLayer.Entities.Partners;
@@ -51,6 +53,14 @@ public class Customer : BaseEntity, IAuditable
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+    [ForeignKey(nameof(CreatedBy))]
+    public User? CreatedByUser { get; set; }
+
+    public int? UpdatedBy { get; set; }
+    [ForeignKey(nameof(UpdatedBy))]
+    public User? UpdatedByUser { get; set; }
 
     public ICollection<GoodsDispatchNote> DispatchNotes { get; set; } = new List<GoodsDispatchNote>();
 }

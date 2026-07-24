@@ -9,9 +9,20 @@ public class CustomerDAO : GenericDAO<Customer>
     {
     }
 
+    public override async Task<Customer?> GetByIdAsync(int id)
+    {
+        return await _dbSet.AsNoTracking()
+            .Include(c => c.CreatedByUser)
+            .Include(c => c.UpdatedByUser)
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
     public async Task<Customer?> GetByCodeAsync(string code)
     {
-        return await _dbSet.FirstOrDefaultAsync(c => c.Code.ToLower() == code.ToLower());
+        return await _dbSet.AsNoTracking()
+            .Include(c => c.CreatedByUser)
+            .Include(c => c.UpdatedByUser)
+            .FirstOrDefaultAsync(c => c.Code.ToLower() == code.ToLower());
     }
 
     public async Task<(List<Customer> Items, int TotalCount)> SearchAsync(
@@ -20,7 +31,10 @@ public class CustomerDAO : GenericDAO<Customer>
         int pageIndex = 1,
         int pageSize = 10)
     {
-        var query = _dbSet.AsNoTracking().AsQueryable();
+        var query = _dbSet.AsNoTracking()
+            .Include(c => c.CreatedByUser)
+            .Include(c => c.UpdatedByUser)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -43,5 +57,14 @@ public class CustomerDAO : GenericDAO<Customer>
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<bool> HasDispatchedGoodsAsync(int customerId)
+    {
+        var hasGDN = await _context.GoodsDispatchNotes.AnyAsync(gdn => gdn.CustomerId == customerId);
+        if (hasGDN) return true;
+
+        var hasRequest = await _context.DispatchRequests.AnyAsync(dr => dr.CustomerId == customerId);
+        return hasRequest;
     }
 }

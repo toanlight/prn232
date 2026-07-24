@@ -61,9 +61,21 @@ public class CustomerItemViewModel
     public string Name { get; set; } = default!;
     public string CustomerType { get; set; } = default!;
     public string? TaxCode { get; set; }
-    public string? Phone { get; set; }
+    public string? Address { get; set; }
     public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? ContactPerson { get; set; }
+    public string? ContactPhone { get; set; }
+    public string? ContractNumber { get; set; }
+    public DateTime? ContractStartDate { get; set; }
+    public DateTime? ContractEndDate { get; set; }
+    public string? ServiceTerms { get; set; }
+    public string? Notes { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy { get; set; }
+    public string? UpdatedBy { get; set; }
 }
 
 public class ProductItemViewModel
