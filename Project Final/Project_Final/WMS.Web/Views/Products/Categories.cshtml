@@ -1,3 +1,4 @@
+@model List<WMS.Web.Models.CategoryItemViewModel>
 @{
     ViewData["Title"] = "Quản lý Danh mục Sản phẩm";
 }
@@ -7,45 +8,283 @@
         <h4 class="fw-bold mb-1 text-dark">Danh mục Sản phẩm</h4>
         <p class="text-muted fs-7 mb-0">Quản lý phân cấp ngành hàng (Category Tree)</p>
     </div>
-    <button class="btn btn-primary btn-sm px-3 fw-semibold" onclick="WMS.showToast('Mở modal thêm danh mục', 'info')">
-        <i class="fa-solid fa-plus me-1"></i> Thêm Danh mục
-    </button>
+    <div class="d-flex gap-2">
+        <a href="/Products" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-arrow-left me-1"></i> Sản phẩm</a>
+        <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+            <i class="fa-solid fa-plus me-1"></i> Thêm Danh mục
+        </button>
+    </div>
 </div>
 
 <div class="card-wms p-4">
     <div class="table-responsive">
-        <table class="table table-hover align-middle fs-7">
+        <table class="table table-hover align-middle fs-7 text-nowrap">
             <thead class="table-light">
                 <tr>
                     <th>Mã Danh mục</th>
                     <th>Tên Danh mục</th>
-                    <th>Cấp cha</th>
+                    <th>Tên tiếng Anh</th>
+                    <th>Danh mục cha</th>
                     <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
                     <th class="text-center">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="fw-bold">CAT-FOOD</td>
-                    <td><i class="fa-solid fa-folder me-2 text-warning"></i>Thực phẩm</td>
-                    <td><span class="text-muted">Gốc (Root)</span></td>
-                    <td><span class="badge bg-success">Hoạt động</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-light border text-danger"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="fw-bold ps-4">CAT-MILK</td>
-                    <td><i class="fa-solid fa-folder-open me-2 text-info"></i>Sữa & Chế phẩm từ sữa</td>
-                    <td>Thực phẩm</td>
-                    <td><span class="badge bg-success">Hoạt động</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-light border text-primary"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-light border text-danger"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">@item.Code</td>
+                            <td class="fw-semibold">
+                                <i class="fa-solid @(item.ParentId.HasValue ? "fa-folder-open text-info" : "fa-folder text-warning") me-2"></i>@item.Name
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(item.NameEn) ? "N/A" : item.NameEn)</td>
+                            <td>
+                                @if (item.ParentId.HasValue && !string.IsNullOrWhiteSpace(item.ParentName))
+                                {
+                                    <span class="badge bg-light text-dark border">@item.ParentName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Gốc (Root)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ngừng hoạt động</span>
+                                }
+                            </td>
+                            <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary me-1 py-0 px-2"
+                                        onclick="openEditCategoryModal(this)"
+                                        data-id="@item.Id"
+                                        data-code="@item.Code"
+                                        data-name="@item.Name"
+                                        data-nameen="@item.NameEn"
+                                        data-parentid="@(item.ParentId.HasValue ? item.ParentId.Value.ToString() : "")"
+                                        data-isactive="@(item.IsActive ? "true" : "false")"
+                                        title="Chỉnh sửa">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="confirmDeleteCategory(@item.Id, '@item.Name')" title="Xóa danh mục">
+                                    <i class="fa-solid fa-trash me-1"></i>Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
+                            Chưa có danh mục sản phẩm nào.
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Modal Thêm Danh mục -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm mới Danh mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="createCategoryForm" class="row g-2">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã Danh mục *</label>
+                        <input type="text" id="catCode" class="form-control form-control-sm" required placeholder="VD: CAT-FOOD">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Danh mục *</label>
+                        <input type="text" id="catName" class="form-control form-control-sm" required placeholder="VD: Thực phẩm tươi sống">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên tiếng Anh</label>
+                        <input type="text" id="catNameEn" class="form-control form-control-sm" placeholder="VD: Fresh Food">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Danh mục cha</label>
+                        <select id="catParentId" class="form-select form-select-sm">
+                            <option value="">-- Không có (Danh mục gốc) --</option>
+                            @if (Model != null)
+                            {
+                                @foreach (var cat in Model)
+                                {
+                                    <option value="@cat.Id">@cat.Name (@cat.Code)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitCreateCategory()" class="btn btn-primary btn-sm">Lưu Danh Mục</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cập nhật Danh mục -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cập nhật Danh mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="editCategoryForm" class="row g-2">
+                    <input type="hidden" id="editCatId">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã Danh mục</label>
+                        <input type="text" id="editCatCode" class="form-control form-control-sm" disabled>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Danh mục *</label>
+                        <input type="text" id="editCatName" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên tiếng Anh</label>
+                        <input type="text" id="editCatNameEn" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Danh mục cha</label>
+                        <select id="editCatParentId" class="form-select form-select-sm">
+                            <option value="">-- Không có (Danh mục gốc) --</option>
+                            @if (Model != null)
+                            {
+                                @foreach (var cat in Model)
+                                {
+                                    <option value="@cat.Id">@cat.Name (@cat.Code)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Trạng thái *</label>
+                        <select id="editCatIsActive" class="form-select form-select-sm">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitUpdateCategory()" class="btn btn-primary btn-sm">Cập nhật Danh Mục</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function submitCreateCategory() {
+        const parentIdVal = document.getElementById('catParentId').value;
+        const payload = {
+            code: document.getElementById('catCode').value,
+            name: document.getElementById('catName').value,
+            nameEn: document.getElementById('catNameEn').value || null,
+            parentId: parentIdVal ? parseInt(parentIdVal) : null
+        };
+
+        try {
+            const res = await fetch('/Products/CreateCategory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('createCategoryModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Tạo danh mục thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể gửi yêu cầu: ' + err.message, 'danger');
+        }
+    }
+
+    function openEditCategoryModal(btn) {
+        document.getElementById('editCatId').value = btn.getAttribute('data-id') || '';
+        document.getElementById('editCatCode').value = btn.getAttribute('data-code') || '';
+        document.getElementById('editCatName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('editCatNameEn').value = btn.getAttribute('data-nameen') || '';
+        document.getElementById('editCatParentId').value = btn.getAttribute('data-parentid') || '';
+        document.getElementById('editCatIsActive').value = btn.getAttribute('data-isactive') || 'true';
+
+        const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+        modal.show();
+    }
+
+    async function submitUpdateCategory() {
+        const id = document.getElementById('editCatId').value;
+        const parentIdVal = document.getElementById('editCatParentId').value;
+        const payload = {
+            name: document.getElementById('editCatName').value,
+            nameEn: document.getElementById('editCatNameEn').value || null,
+            parentId: parentIdVal ? parseInt(parentIdVal) : null,
+            isActive: document.getElementById('editCatIsActive').value === 'true'
+        };
+
+        try {
+            const res = await fetch(`/Products/UpdateCategory/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('editCategoryModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Cập nhật danh mục thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể cập nhật: ' + err.message, 'danger');
+        }
+    }
+
+    function confirmDeleteCategory(id, name) {
+        WMS.confirm('Xác nhận xóa danh mục', `Bạn có chắc chắn muốn xóa danh mục "${name}"?`, async () => {
+            try {
+                const res = await fetch(`/Products/DeleteCategory/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    WMS.showToast(data.message || 'Đã xóa danh mục thành công!', 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+                }
+            } catch (err) {
+                WMS.showToast('Lỗi thao tác: ' + err.message, 'danger');
+            }
+        });
+    }
+</script>

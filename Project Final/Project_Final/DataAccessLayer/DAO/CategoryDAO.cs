@@ -33,4 +33,13 @@ public class CategoryDAO : GenericDAO<ProductCategory>
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<List<ProductCategory>> GetAllWithParentAsync()
+    {
+        return await _dbSet
+            .Include(c => c.Parent)
+            .AsNoTracking()
+            .OrderBy(c => c.Code)
+            .ToListAsync();
+    }
 }

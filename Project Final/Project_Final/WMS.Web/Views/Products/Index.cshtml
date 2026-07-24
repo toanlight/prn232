@@ -1,25 +1,39 @@
 @model WMS.Web.Models.PagedResponseModel<WMS.Web.Models.ProductItemViewModel>
 @{
     ViewData["Title"] = "Danh sách Sản phẩm";
+    var categories = ViewBag.Categories as List<WMS.Web.Models.CategoryItemViewModel> ?? new List<WMS.Web.Models.CategoryItemViewModel>();
+    var uoms = ViewBag.Uoms as List<WMS.Web.Models.UomItemViewModel> ?? new List<WMS.Web.Models.UomItemViewModel>();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1 text-dark">Danh sách Sản phẩm (SKUs)</h4>
-        <p class="text-muted fs-7 mb-0">Quản lý danh mục hàng hóa, ngưỡng tồn tối thiểu & quy cách lưu kho</p>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Sản phẩm (SKUs)</h4>
+        <p class="text-muted fs-7 mb-0">Quản lý danh mục hàng hóa, đơn vị tính, ngưỡng tồn kho & quy cách theo dõi</p>
     </div>
     <div class="d-flex gap-2">
         <a href="/Products/Categories" class="btn btn-outline-secondary btn-sm px-3 fw-semibold"><i class="fa-solid fa-tags me-1"></i> Danh mục</a>
+        <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createProductModal">
+            <i class="fa-solid fa-plus me-1"></i> Thêm Sản phẩm
+        </button>
     </div>
 </div>
 
 <!-- ──── Filter Panel ──── -->
 <div class="card-wms p-3 mb-4">
     <form method="get" action="/Products" class="row g-2 align-items-center">
-        <div class="col-12 col-md-8">
+        <div class="col-md-5">
             <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm theo SKU, tên sản phẩm, mã vạch..." />
         </div>
-        <div class="col-12 col-md-4 d-grid">
+        <div class="col-md-4">
+            <select name="categoryId" class="form-select form-select-sm">
+                <option value="">-- Tất cả danh mục --</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat.Id" selected="@(ViewBag.CategoryId == cat.Id ? "selected" : null)">@cat.Name (@cat.Code)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3 d-grid">
             <button type="submit" class="btn btn-sm btn-primary fw-semibold"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm</button>
         </div>
     </form>
@@ -28,16 +42,24 @@
 <!-- ──── Products Table ──── -->
 <div class="card-wms p-4">
     <div class="table-responsive">
-        <table class="table table-hover align-middle fs-7 mb-0">
+        <table class="table table-hover align-middle fs-7 text-nowrap">
             <thead class="table-light">
                 <tr>
                     <th>SKU</th>
                     <th>Tên sản phẩm</th>
+                    <th>Tên tiếng Anh</th>
                     <th>Mã vạch</th>
+                    <th>Danh mục</th>
+                    <th>Đơn vị tính</th>
                     <th class="text-end">Min Stock</th>
                     <th class="text-end">Reorder Point</th>
                     <th>Theo Lô / HSD</th>
+                    <th>Cảnh báo HSD</th>
+                    <th>Mô tả</th>
                     <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Người tạo</th>
+                    <th class="text-center">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,11 +68,12 @@
                     @foreach (var item in Model.Data)
                     {
                         <tr>
-                            <td class="fw-bold text-dark">@item.SKU</td>
-                            <td>
-                                <div class="fw-semibold">@item.Name</div>
-                            </td>
-                            <td>@(item.Barcode ?? "---")</td>
+                            <td class="fw-bold text-primary">@item.SKU</td>
+                            <td class="fw-semibold">@item.Name</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.NameEn) ? "N/A" : item.NameEn)</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Barcode) ? "N/A" : item.Barcode)</td>
+                            <td><span class="badge bg-secondary-subtle text-dark">@(item.CategoryName ?? "N/A")</span></td>
+                            <td><span class="badge bg-light text-dark border">@(item.UomCode ?? "N/A")</span></td>
                             <td class="text-end fw-bold text-danger">@item.MinStock</td>
                             <td class="text-end fw-bold text-muted">@item.ReorderPoint</td>
                             <td>
@@ -63,15 +86,42 @@
                                     <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fa-solid fa-clock me-1"></i>HSD</span>
                                 }
                             </td>
+                            <td>@(item.IsExpiryTracked ? $"{item.ExpiryWarningDays} ngày" : "N/A")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Description) ? "N/A" : item.Description)</td>
                             <td>
                                 @if (item.IsActive)
                                 {
-                                    <span class="badge bg-success">Đang bán</span>
+                                    <span class="badge bg-success">Đang hoạt động</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">Tạm ngưng</span>
+                                    <span class="badge bg-secondary">Ngừng hoạt động</span>
                                 }
+                            </td>
+                            <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.CreatedBy) ? "N/A" : item.CreatedBy)</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary me-1 py-0 px-2"
+                                        onclick="openEditModalFromBtn(this)"
+                                        data-id="@item.Id"
+                                        data-sku="@item.SKU"
+                                        data-name="@item.Name"
+                                        data-nameen="@item.NameEn"
+                                        data-barcode="@item.Barcode"
+                                        data-categoryid="@item.CategoryId"
+                                        data-uomid="@item.UomId"
+                                        data-minstock="@item.MinStock"
+                                        data-reorderpoint="@item.ReorderPoint"
+                                        data-isbatchtracked="@(item.IsBatchTracked ? "true" : "false")"
+                                        data-isexpirytracked="@(item.IsExpiryTracked ? "true" : "false")"
+                                        data-expirywarningdays="@item.ExpiryWarningDays"
+                                        data-description="@item.Description"
+                                        title="Chỉnh sửa">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="confirmDeleteProduct(@item.Id, '@item.Name')" title="Xóa sản phẩm">
+                                    <i class="fa-solid fa-trash me-1"></i>Xóa
+                                </button>
                             </td>
                         </tr>
                     }
@@ -79,7 +129,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">
+                        <td colspan="15" class="text-center py-4 text-muted">
                             <i class="fa-solid fa-inbox fs-3 mb-2 d-block"></i>
                             Chưa có sản phẩm nào trong hệ thống.
                         </td>
@@ -88,4 +138,329 @@
             </tbody>
         </table>
     </div>
+
+    @if (Model != null && Model.TotalCount > 0)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <div class="fs-7 text-muted">
+                Hiển thị <span class="fw-bold text-dark">@Model.Items.Count</span> / <span class="fw-bold text-dark">@Model.TotalCount</span> Sản phẩm
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                            <a class="page-link" href="/Products?pageIndex=@(Model.PageIndex - 1)&keyword=@ViewBag.Keyword&categoryId=@ViewBag.CategoryId">
+                                <i class="fa-solid fa-angle-left me-1"></i>Trước
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" href="/Products?pageIndex=@i&keyword=@ViewBag.Keyword&categoryId=@ViewBag.CategoryId">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                            <a class="page-link" href="/Products?pageIndex=@(Model.PageIndex + 1)&keyword=@ViewBag.Keyword&categoryId=@ViewBag.CategoryId">
+                                Tiếp<i class="fa-solid fa-angle-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
 </div>
+
+<!-- Modal Thêm Sản phẩm -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm mới Sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="createProductForm" class="row g-2">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã SKU *</label>
+                        <input type="text" id="prodSKU" class="form-control form-control-sm" required placeholder="VD: SKU-PROD-001">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên sản phẩm *</label>
+                        <input type="text" id="prodName" class="form-control form-control-sm" required placeholder="VD: Sữa chua Vinamilk">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên tiếng Anh</label>
+                        <input type="text" id="prodNameEn" class="form-control form-control-sm" placeholder="VD: Vinamilk Yogurt">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã vạch (Barcode)</label>
+                        <input type="text" id="prodBarcode" class="form-control form-control-sm" placeholder="VD: 8931234567890">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Danh mục sản phẩm *</label>
+                        <select id="prodCategoryId" class="form-select form-select-sm" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name (@cat.Code)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Đơn vị tính *</label>
+                        <select id="prodUomId" class="form-select form-select-sm" required>
+                            <option value="">-- Chọn ĐVT --</option>
+                            @foreach (var uom in uoms)
+                            {
+                                <option value="@uom.Id">@uom.Name (@uom.Code)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mức tồn kho tối thiểu (MinStock)</label>
+                        <input type="number" step="1" id="prodMinStock" class="form-control form-control-sm" value="10">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điểm đặt hàng lại (ReorderPoint)</label>
+                        <input type="number" step="1" id="prodReorderPoint" class="form-control form-control-sm" value="20">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="prodIsBatchTracked" checked>
+                            <label class="form-check-label fw-semibold" for="prodIsBatchTracked">
+                                Quản lý theo Lô
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="prodIsExpiryTracked" checked>
+                            <label class="form-check-label fw-semibold" for="prodIsExpiryTracked">
+                                Quản lý Hạn sử dụng
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Số ngày cảnh báo HSD</label>
+                        <input type="number" id="prodExpiryWarningDays" class="form-control form-control-sm" value="30">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mô tả sản phẩm</label>
+                        <textarea id="prodDescription" class="form-control form-control-sm" rows="2" placeholder="Nhập mô tả sản phẩm..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitCreateProduct()" class="btn btn-primary btn-sm">Lưu Sản Phẩm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cập nhật Sản phẩm -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cập nhật Sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="editProductForm" class="row g-2">
+                    <input type="hidden" id="editProdId">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã SKU</label>
+                        <input type="text" id="editProdSKU" class="form-control form-control-sm" disabled>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên sản phẩm *</label>
+                        <input type="text" id="editProdName" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên tiếng Anh</label>
+                        <input type="text" id="editProdNameEn" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã vạch (Barcode)</label>
+                        <input type="text" id="editProdBarcode" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Danh mục sản phẩm *</label>
+                        <select id="editProdCategoryId" class="form-select form-select-sm" required>
+                            <option value="">-- Chọn danh mục --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.Id">@cat.Name (@cat.Code)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Đơn vị tính *</label>
+                        <select id="editProdUomId" class="form-select form-select-sm" required>
+                            <option value="">-- Chọn ĐVT --</option>
+                            @foreach (var uom in uoms)
+                            {
+                                <option value="@uom.Id">@uom.Name (@uom.Code)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mức tồn kho tối thiểu (MinStock)</label>
+                        <input type="number" step="1" id="editProdMinStock" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-semibold mb-1">Điểm đặt hàng lại (ReorderPoint)</label>
+                        <input type="number" step="1" id="editProdReorderPoint" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="editProdIsBatchTracked">
+                            <label class="form-check-label fw-semibold" for="editProdIsBatchTracked">
+                                Quản lý theo Lô
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="editProdIsExpiryTracked">
+                            <label class="form-check-label fw-semibold" for="editProdIsExpiryTracked">
+                                Quản lý Hạn sử dụng
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-semibold mb-1">Số ngày cảnh báo HSD</label>
+                        <input type="number" id="editProdExpiryWarningDays" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mô tả sản phẩm</label>
+                        <textarea id="editProdDescription" class="form-control form-control-sm" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitUpdateProduct()" class="btn btn-primary btn-sm">Cập nhật Sản Phẩm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function submitCreateProduct() {
+        const payload = {
+            sku: document.getElementById('prodSKU').value,
+            name: document.getElementById('prodName').value,
+            nameEn: document.getElementById('prodNameEn').value || null,
+            barcode: document.getElementById('prodBarcode').value || null,
+            categoryId: parseInt(document.getElementById('prodCategoryId').value),
+            uomId: parseInt(document.getElementById('prodUomId').value),
+            minStock: parseFloat(document.getElementById('prodMinStock').value) || 0,
+            reorderPoint: parseFloat(document.getElementById('prodReorderPoint').value) || 0,
+            isBatchTracked: document.getElementById('prodIsBatchTracked').checked,
+            isExpiryTracked: document.getElementById('prodIsExpiryTracked').checked,
+            expiryWarningDays: parseInt(document.getElementById('prodExpiryWarningDays').value) || 0,
+            description: document.getElementById('prodDescription').value || null
+        };
+
+        try {
+            const res = await fetch('/Products/Create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('createProductModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Tạo sản phẩm thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể gửi yêu cầu: ' + err.message, 'danger');
+        }
+    }
+
+    function openEditModalFromBtn(btn) {
+        document.getElementById('editProdId').value = btn.getAttribute('data-id') || '';
+        document.getElementById('editProdSKU').value = btn.getAttribute('data-sku') || '';
+        document.getElementById('editProdName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('editProdNameEn').value = btn.getAttribute('data-nameen') || '';
+        document.getElementById('editProdBarcode').value = btn.getAttribute('data-barcode') || '';
+        document.getElementById('editProdCategoryId').value = btn.getAttribute('data-categoryid') || '';
+        document.getElementById('editProdUomId').value = btn.getAttribute('data-uomid') || '';
+        document.getElementById('editProdMinStock').value = btn.getAttribute('data-minstock') || '0';
+        document.getElementById('editProdReorderPoint').value = btn.getAttribute('data-reorderpoint') || '0';
+        document.getElementById('editProdIsBatchTracked').checked = btn.getAttribute('data-isbatchtracked') === 'true';
+        document.getElementById('editProdIsExpiryTracked').checked = btn.getAttribute('data-isexpirytracked') === 'true';
+        document.getElementById('editProdExpiryWarningDays').value = btn.getAttribute('data-expirywarningdays') || '30';
+        document.getElementById('editProdDescription').value = btn.getAttribute('data-description') || '';
+
+        const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+        modal.show();
+    }
+
+    async function submitUpdateProduct() {
+        const id = document.getElementById('editProdId').value;
+        const payload = {
+            name: document.getElementById('editProdName').value,
+            nameEn: document.getElementById('editProdNameEn').value || null,
+            barcode: document.getElementById('editProdBarcode').value || null,
+            categoryId: parseInt(document.getElementById('editProdCategoryId').value),
+            uomId: parseInt(document.getElementById('editProdUomId').value),
+            minStock: parseFloat(document.getElementById('editProdMinStock').value) || 0,
+            reorderPoint: parseFloat(document.getElementById('editProdReorderPoint').value) || 0,
+            isBatchTracked: document.getElementById('editProdIsBatchTracked').checked,
+            isExpiryTracked: document.getElementById('editProdIsExpiryTracked').checked,
+            expiryWarningDays: parseInt(document.getElementById('editProdExpiryWarningDays').value) || 0,
+            description: document.getElementById('editProdDescription').value || null
+        };
+
+        try {
+            const res = await fetch(`/Products/Update/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('editProductModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Cập nhật thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể cập nhật: ' + err.message, 'danger');
+        }
+    }
+
+    function confirmDeleteProduct(id, name) {
+        WMS.confirm('Xác nhận xóa sản phẩm', `Bạn có chắc chắn muốn xóa sản phẩm "${name}"?`, async () => {
+            try {
+                const res = await fetch(`/Products/Delete/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    WMS.showToast(data.message || 'Đã xóa sản phẩm thành công!', 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+                }
+            } catch (err) {
+                WMS.showToast('Lỗi thao tác: ' + err.message, 'danger');
+            }
+        });
+    }
+</script>

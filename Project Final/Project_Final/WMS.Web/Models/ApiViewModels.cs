@@ -85,12 +85,40 @@ public class ProductItemViewModel
     public string Name { get; set; } = default!;
     public string? NameEn { get; set; }
     public string? Barcode { get; set; }
+    public int CategoryId { get; set; }
+    public string? CategoryName { get; set; }
+    public int UomId { get; set; }
+    public string? UomCode { get; set; }
+    public string? UomName { get; set; }
+    public string? Description { get; set; }
     public decimal MinStock { get; set; }
     public decimal ReorderPoint { get; set; }
     public bool IsBatchTracked { get; set; }
     public bool IsExpiryTracked { get; set; }
     public int ExpiryWarningDays { get; set; } = 30;
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy { get; set; }
+}
+
+public class CategoryItemViewModel
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = default!;
+    public string Name { get; set; } = default!;
+    public string? NameEn { get; set; }
+    public int? ParentId { get; set; }
+    public string? ParentName { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
+}
+
+public class UomItemViewModel
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = default!;
+    public string Name { get; set; } = default!;
 }
 
 public class WarehouseItemViewModel

@@ -21,11 +21,19 @@ public class ProductsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> Search([FromQuery] string? keyword, [FromQuery] int? categoryId,
-        [FromQuery] bool? isActive, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        [FromQuery] bool? isActive, [FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 100)
     {
         var (items, totalCount) = await _productService.SearchProductsAsync(keyword, categoryId, isActive, pageIndex, pageSize);
         return Ok(PagedResponse<object>.From(
-            items.Select(p => new { p.Id, p.SKU, p.Name, p.Barcode, CategoryName = p.Category?.Name, UomCode = p.Uom?.Code, p.MinStock, p.IsActive }).ToList<object>(),
+            items.Select(p => new {
+                p.Id, p.SKU, p.Barcode, p.Name, p.NameEn,
+                p.CategoryId, CategoryName = p.Category?.Name,
+                p.UomId, UomCode = p.Uom?.Code, UomName = p.Uom?.Name,
+                p.Description, p.MinStock, p.ReorderPoint,
+                p.IsBatchTracked, p.IsExpiryTracked, p.ExpiryWarningDays,
+                p.IsActive, p.CreatedAt, p.UpdatedAt,
+                CreatedBy = p.CreatedByUser != null ? (p.CreatedByUser.FullName ?? p.CreatedByUser.Username) : (p.CreatedBy > 0 ? $"User #{p.CreatedBy}" : null)
+            }).ToList<object>(),
             totalCount, pageIndex, pageSize));
     }
 
@@ -33,14 +41,24 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var product = await _productService.GetByIdAsync(id);
-        return Ok(ApiResponse<object>.Ok(product));
+        return Ok(ApiResponse<object>.Ok(new {
+            product.Id, product.SKU, product.Barcode, product.Name, product.NameEn,
+            product.CategoryId, CategoryName = product.Category?.Name,
+            product.UomId, UomCode = product.Uom?.Code, UomName = product.Uom?.Name,
+            product.Description, product.MinStock, product.ReorderPoint,
+            product.IsBatchTracked, product.IsExpiryTracked, product.ExpiryWarningDays,
+            product.IsActive, product.CreatedAt, product.UpdatedAt,
+            CreatedBy = product.CreatedByUser != null ? (product.CreatedByUser.FullName ?? product.CreatedByUser.Username) : (product.CreatedBy > 0 ? $"User #{product.CreatedBy}" : null)
+        }));
     }
 
     [HttpPost]
     [Authorize(Roles = "ADMIN,WH_MANAGER")]
     public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
     {
-        var product = await _productService.CreateProductAsync(dto);
+        int? userId = null;
+        try { userId = User.GetUserId(); } catch { }
+        var product = await _productService.CreateProductAsync(dto, userId);
         return StatusCode(201, ApiResponse<object>.Created(new { product.Id, product.SKU, product.Name }));
     }
 
@@ -52,12 +70,12 @@ public class ProductsController : ControllerBase
         return Ok(ApiResponse<object>.Ok(new { product.Id, product.Name }));
     }
 
-    [HttpPatch("{id}/toggle-activate")]
-    [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> ToggleActivate(int id)
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "ADMIN,WH_MANAGER")]
+    public async Task<IActionResult> Delete(int id)
     {
-        await _productService.ToggleActivateAsync(id);
-        return Ok(ApiResponse.OkMessage("Product activation toggled"));
+        await _productService.DeleteProductAsync(id);
+        return Ok(ApiResponse.OkMessage("Xóa sản phẩm thành công!"));
     }
 
     // ──── Categories ────
@@ -65,8 +83,10 @@ public class ProductsController : ControllerBase
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategories()
     {
-        var categories = await _productService.GetCategoryTreeAsync();
-        return Ok(ApiResponse<object>.Ok(categories));
+        var categories = await _productService.GetAllCategoriesAsync();
+        return Ok(ApiResponse<object>.Ok(categories.Select(c => new {
+            c.Id, c.Code, c.Name, c.NameEn, c.ParentId, ParentName = c.Parent?.Name, c.IsActive, c.CreatedAt
+        })));
     }
 
     [HttpPost("categories")]

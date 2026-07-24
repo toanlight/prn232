@@ -6,11 +6,12 @@ public interface IProductService
 {
     Task<(List<Product> Items, int TotalCount)> SearchProductsAsync(string? keyword, int? categoryId, bool? isActive, int pageIndex = 1, int pageSize = 10);
     Task<Product> GetByIdAsync(int id);
-    Task<Product> CreateProductAsync(CreateProductDto dto);
+    Task<Product> CreateProductAsync(CreateProductDto dto, int? userId = null);
     Task<Product> UpdateProductAsync(int id, UpdateProductDto dto);
-    Task ToggleActivateAsync(int id);
+    Task DeleteProductAsync(int id);
 
     // Category
+    Task<List<ProductCategory>> GetAllCategoriesAsync();
     Task<List<ProductCategory>> GetCategoryTreeAsync();
     Task<ProductCategory> CreateCategoryAsync(CreateCategoryDto dto);
     Task<ProductCategory> UpdateCategoryAsync(int id, UpdateCategoryDto dto);

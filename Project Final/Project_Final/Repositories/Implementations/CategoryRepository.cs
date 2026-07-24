@@ -17,4 +17,5 @@ public class CategoryRepository : GenericRepository<ProductCategory>, ICategoryR
     public async Task<ProductCategory?> GetByCodeAsync(string code) => await _categoryDao.GetByCodeAsync(code);
     public async Task<List<ProductCategory>> GetTreeCategoriesAsync() => await _categoryDao.GetTreeCategoriesAsync();
     public async Task<List<ProductCategory>> GetActiveCategoriesAsync() => await _categoryDao.GetActiveCategoriesAsync();
+    public async Task<List<ProductCategory>> GetAllWithParentAsync() => await _categoryDao.GetAllWithParentAsync();
 }
