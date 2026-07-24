@@ -126,8 +126,14 @@ public class WarehouseItemViewModel
     public int Id { get; set; }
     public string Code { get; set; } = default!;
     public string Name { get; set; } = default!;
+    public string? NameEn { get; set; }
     public string? Address { get; set; }
-    public bool IsActive { get; set; }
+    public int? ManagerUserId { get; set; }
+    public string? ManagerUserName { get; set; }
+    public int ZoneCount { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
 
 public class BatchItemViewModel

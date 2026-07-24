@@ -5,37 +5,75 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-1 text-dark">Danh sách Kho Hàng</h4>
-        <p class="text-muted fs-7 mb-0">Quản lý kho vật lý và sơ đồ lưu trữ 5 cấp</p>
+        <h4 class="fw-bold mb-1 text-dark">Quản lý Kho Hàng</h4>
+        <p class="text-muted fs-7 mb-0">Quản lý các hệ thống kho vật lý, khu vực lưu trữ (Zones) & sơ đồ phân bổ</p>
+    </div>
+    <div>
+        <button class="btn btn-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createWarehouseModal">
+            <i class="fa-solid fa-plus me-1"></i> Thêm Kho Hàng
+        </button>
     </div>
 </div>
 
+<!-- ──── Filter Panel ──── -->
+<div class="card-wms p-3 mb-4">
+    <form method="get" action="/Warehouses" class="row g-2 align-items-center">
+        <div class="col-12 col-md-8">
+            <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm theo mã kho, tên kho, địa chỉ..." />
+        </div>
+        <div class="col-12 col-md-4 d-grid">
+            <button type="submit" class="btn btn-sm btn-primary fw-semibold"><i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm</button>
+        </div>
+    </form>
+</div>
+
+<!-- ──── Warehouse Cards Grid ──── -->
 <div class="row g-3">
     @if (Model.Data != null && Model.Data.Any())
     {
         foreach (var wh in Model.Data)
         {
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="card-wms p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="kpi-icon kpi-blue">
-                                <i class="fa-solid fa-warehouse"></i>
+                <div class="card-wms p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="kpi-icon kpi-blue">
+                                    <i class="fa-solid fa-warehouse fs-4 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">@wh.Name</h6>
+                                    <span class="badge bg-light text-primary border">Mã: @wh.Code</span>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark">@wh.Name</h6>
-                                <span class="badge bg-light text-secondary border">Mã: @wh.Code</span>
-                            </div>
+                            <span class="badge @(wh.IsActive ? "bg-success" : "bg-secondary")">
+                                @(wh.IsActive ? "Hoạt động" : "Ngừng hoạt động")
+                            </span>
                         </div>
-                        <span class="badge @(wh.IsActive ? "bg-success" : "bg-secondary")">@(wh.IsActive ? "Hoạt động" : "Ngừng")</span>
+
+                        <p class="text-muted fs-7 mb-2"><i class="fa-solid fa-location-dot me-1 text-danger"></i>@(string.IsNullOrWhiteSpace(wh.Address) ? "Chưa cập nhật địa chỉ" : wh.Address)</p>
+                        <p class="text-muted fs-7 mb-2"><i class="fa-solid fa-layer-group me-1 text-info"></i>Số Khu vực (Zones): <strong class="text-dark">@wh.ZoneCount</strong></p>
+                        <p class="text-muted fs-7 mb-3"><i class="fa-solid fa-user-gear me-1 text-secondary"></i>Quản lý: <span class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(wh.ManagerUserName) ? "Chưa chỉ định" : wh.ManagerUserName)</span></p>
                     </div>
 
-                    <p class="text-muted fs-7 mb-3"><i class="fa-solid fa-location-dot me-1"></i>@(wh.Address ?? "Chưa cập nhật địa chỉ")</p>
-
-                    <div class="d-flex gap-2 pt-2 border-top">
-                        <a href="/Warehouses/@wh.Id/Structure" class="btn btn-sm btn-outline-primary flex-grow-1 fw-semibold">
-                            <i class="fa-solid fa-sitemap me-1"></i> Xem Sơ đồ Cây Kho
+                    <div class="d-flex gap-2 pt-3 border-top mt-auto">
+                        <a href="/Warehouses/@wh.Id/Structure" class="btn btn-sm btn-outline-primary flex-grow-1 fw-semibold" title="Xem sơ đồ cây kho">
+                            <i class="fa-solid fa-sitemap me-1"></i>Sơ đồ Kho
                         </a>
+                        <button class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                onclick="openEditWarehouseModal(this)"
+                                data-id="@wh.Id"
+                                data-code="@wh.Code"
+                                data-name="@wh.Name"
+                                data-address="@wh.Address"
+                                data-manageruserid="@(wh.ManagerUserId.HasValue ? wh.ManagerUserId.Value.ToString() : "")"
+                                data-isactive="@(wh.IsActive ? "true" : "false")"
+                                title="Chỉnh sửa kho">
+                            <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="confirmDeleteWarehouse(@wh.Id, '@wh.Name')" title="Xóa kho">
+                            <i class="fa-solid fa-trash me-1"></i>Xóa
+                        </button>
                     </div>
                 </div>
             </div>
@@ -45,7 +83,204 @@
     {
         <div class="col-12 text-center py-5 text-muted">
             <i class="fa-solid fa-warehouse fs-1 mb-2 d-block text-secondary"></i>
-            Chưa có kho hàng nào được khởi tạo.
+            Chưa có kho hàng nào trong hệ thống.
         </div>
     }
 </div>
+
+@if (Model != null && Model.TotalCount > 0)
+{
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-2">
+        <div class="fs-7 text-muted">
+            Hiển thị <span class="fw-bold text-dark">@Model.Items.Count</span> / <span class="fw-bold text-dark">@Model.TotalCount</span> Kho Hàng
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" href="/Warehouses?pageIndex=@(Model.PageIndex - 1)&keyword=@ViewBag.Keyword">
+                            <i class="fa-solid fa-angle-left me-1"></i>Trước
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" href="/Warehouses?pageIndex=@i&keyword=@ViewBag.Keyword">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" href="/Warehouses?pageIndex=@(Model.PageIndex + 1)&keyword=@ViewBag.Keyword">
+                            Tiếp<i class="fa-solid fa-angle-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+}
+
+<!-- Modal Thêm Kho Hàng -->
+<div class="modal fade" id="createWarehouseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Thêm mới Kho Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="createWarehouseForm" class="row g-2">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã Kho Hàng *</label>
+                        <input type="text" id="whCode" class="form-control form-control-sm" required placeholder="VD: WH-MAIN-01">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Kho Hàng *</label>
+                        <input type="text" id="whName" class="form-control form-control-sm" required placeholder="VD: Kho Tổng Hà Nội">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Địa chỉ Kho</label>
+                        <input type="text" id="whAddress" class="form-control form-control-sm" placeholder="VD: KCN Bắc Thăng Long, Hà Nội">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitCreateWarehouse()" class="btn btn-primary btn-sm">Lưu Kho Hàng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cập nhật Kho Hàng -->
+<div class="modal fade" id="editWarehouseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cập nhật Kho Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-7">
+                <form id="editWarehouseForm" class="row g-2">
+                    <input type="hidden" id="editWhId">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Mã Kho Hàng</label>
+                        <input type="text" id="editWhCode" class="form-control form-control-sm" disabled>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Tên Kho Hàng *</label>
+                        <input type="text" id="editWhName" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Địa chỉ Kho</label>
+                        <input type="text" id="editWhAddress" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label fw-semibold mb-1">Trạng thái *</label>
+                        <select id="editWhIsActive" class="form-select form-select-sm">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" onclick="submitUpdateWarehouse()" class="btn btn-primary btn-sm">Cập nhật Kho Hàng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function submitCreateWarehouse() {
+        const payload = {
+            code: document.getElementById('whCode').value,
+            name: document.getElementById('whName').value,
+            address: document.getElementById('whAddress').value || null,
+            managerUserId: null
+        };
+
+        try {
+            const res = await fetch('/Warehouses/Create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('createWarehouseModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Tạo kho hàng thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể gửi yêu cầu: ' + err.message, 'danger');
+        }
+    }
+
+    function openEditWarehouseModal(btn) {
+        document.getElementById('editWhId').value = btn.getAttribute('data-id') || '';
+        document.getElementById('editWhCode').value = btn.getAttribute('data-code') || '';
+        document.getElementById('editWhName').value = btn.getAttribute('data-name') || '';
+        document.getElementById('editWhAddress').value = btn.getAttribute('data-address') || '';
+        document.getElementById('editWhIsActive').value = btn.getAttribute('data-isactive') || 'true';
+
+        const modal = new bootstrap.Modal(document.getElementById('editWarehouseModal'));
+        modal.show();
+    }
+
+    async function submitUpdateWarehouse() {
+        const id = document.getElementById('editWhId').value;
+        const payload = {
+            name: document.getElementById('editWhName').value,
+            address: document.getElementById('editWhAddress').value || null,
+            managerUserId: null,
+            isActive: document.getElementById('editWhIsActive').value === 'true'
+        };
+
+        try {
+            const res = await fetch(`/Warehouses/Update/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                const modalEl = document.getElementById('editWarehouseModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                WMS.showToast(data.message || 'Cập nhật kho thành công!', 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+            }
+        } catch (err) {
+            WMS.showToast('Không thể cập nhật: ' + err.message, 'danger');
+        }
+    }
+
+    function confirmDeleteWarehouse(id, name) {
+        WMS.confirm('Xác nhận xóa kho hàng', `Bạn có chắc chắn muốn xóa kho "${name}"?`, async () => {
+            try {
+                const res = await fetch(`/Warehouses/Delete/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    WMS.showToast(data.message || 'Đã xóa kho hàng thành công!', 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    WMS.showToast(data.message || 'Có lỗi xảy ra', 'danger');
+                }
+            } catch (err) {
+                WMS.showToast('Lỗi thao tác: ' + err.message, 'danger');
+            }
+        });
+    }
+</script>

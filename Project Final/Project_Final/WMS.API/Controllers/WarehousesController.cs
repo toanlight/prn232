@@ -20,10 +20,30 @@ public class WarehousesController : ControllerBase
     // ──── Warehouse ────
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? keyword,
+        [FromQuery] bool? isActive,
+        [FromQuery] int pageIndex = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var warehouses = await _warehouseService.GetActiveWarehousesAsync();
-        return Ok(ApiResponse<object>.Ok(warehouses));
+        var (items, totalCount) = await _warehouseService.SearchWarehousesAsync(keyword, isActive, pageIndex, pageSize);
+        return Ok(PagedResponse<object>.From(
+            items.Select(w => new {
+                w.Id, w.Code, w.Name, w.NameEn, w.Address,
+                w.ManagerUserId, ManagerUserName = w.ManagerUser?.FullName,
+                ZoneCount = w.Zones.Count,
+                w.IsActive, w.CreatedAt, w.UpdatedAt
+            }).ToList<object>(),
+            totalCount, pageIndex, pageSize
+        ));
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _warehouseService.DeleteWarehouseAsync(id);
+        return Ok(ApiResponse.OkMessage("Xóa kho thành công!"));
     }
 
     [HttpGet("{id}")]

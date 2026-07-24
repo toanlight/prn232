@@ -27,6 +27,10 @@ public class WarehouseService : IWarehouseService
     }
 
     // ─── Warehouse ───────────────────────────────────────────────────────────
+    public async Task<(List<Warehouse> Items, int TotalCount)> SearchWarehousesAsync(
+        string? keyword, bool? isActive, int pageIndex = 1, int pageSize = 10)
+        => await _warehouseRepo.SearchAsync(keyword, isActive, pageIndex, pageSize);
+
     public async Task<List<Warehouse>> GetActiveWarehousesAsync()
         => await _warehouseRepo.GetActiveWarehousesAsync();
 
@@ -40,14 +44,26 @@ public class WarehouseService : IWarehouseService
 
     public async Task<Warehouse> CreateWarehouseAsync(CreateWarehouseDto dto)
     {
-        if (await _warehouseRepo.ExistsAsync(w => w.Code.ToLower() == dto.Code.ToLower()))
-            throw new InvalidOperationException($"Mã kho '{dto.Code}' đã tồn tại.");
+        if (string.IsNullOrWhiteSpace(dto.Code))
+            throw new ArgumentException("Mã kho là bắt buộc.");
+        var trimmedCode = dto.Code.Trim();
+        if (trimmedCode.Length < 2 || trimmedCode.Length > 50)
+            throw new ArgumentException("Mã kho phải từ 2 đến 50 ký tự.");
+
+        if (await _warehouseRepo.ExistsAsync(w => w.Code.ToLower() == trimmedCode.ToLower()))
+            throw new InvalidOperationException($"Mã kho '{trimmedCode}' đã tồn tại.");
+
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            throw new ArgumentException("Tên kho là bắt buộc.");
+        var trimmedName = dto.Name.Trim();
+        if (trimmedName.Length < 2 || trimmedName.Length > 150)
+            throw new ArgumentException("Tên kho phải từ 2 đến 150 ký tự.");
 
         var warehouse = new Warehouse
         {
-            Code = dto.Code.ToUpper(),
-            Name = dto.Name,
-            Address = dto.Address,
+            Code = trimmedCode.ToUpper(),
+            Name = trimmedName,
+            Address = dto.Address?.Trim(),
             ManagerUserId = dto.ManagerUserId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -63,14 +79,35 @@ public class WarehouseService : IWarehouseService
         var warehouse = await _warehouseRepo.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Không tìm thấy kho ID={id}.");
 
-        warehouse.Name = dto.Name;
-        warehouse.Address = dto.Address;
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            throw new ArgumentException("Tên kho là bắt buộc.");
+        var trimmedName = dto.Name.Trim();
+        if (trimmedName.Length < 2 || trimmedName.Length > 150)
+            throw new ArgumentException("Tên kho phải từ 2 đến 150 ký tự.");
+
+        warehouse.Name = trimmedName;
+        warehouse.Address = dto.Address?.Trim();
         warehouse.ManagerUserId = dto.ManagerUserId;
         warehouse.IsActive = dto.IsActive;
 
         _warehouseRepo.Update(warehouse);
         await _warehouseRepo.SaveChangesAsync();
         return warehouse;
+    }
+
+    public async Task DeleteWarehouseAsync(int id)
+    {
+        var warehouse = await _warehouseRepo.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"Không tìm thấy kho ID={id}.");
+
+        var hasAssociatedRecords = await _warehouseRepo.HasAssociatedRecordsAsync(id);
+        if (hasAssociatedRecords)
+        {
+            throw new InvalidOperationException("Không thể xóa kho này vì đã có khu vực kho (Zones), đơn mua hàng, phiếu nhập/xuất hoặc chứng từ liên quan.");
+        }
+
+        _warehouseRepo.Remove(warehouse);
+        await _warehouseRepo.SaveChangesAsync();
     }
 
     // ─── Zone ────────────────────────────────────────────────────────────────

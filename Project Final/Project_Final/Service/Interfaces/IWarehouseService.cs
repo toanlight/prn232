@@ -5,11 +5,13 @@ namespace Service.Interfaces;
 public interface IWarehouseService
 {
     // Warehouse
+    Task<(List<Warehouse> Items, int TotalCount)> SearchWarehousesAsync(string? keyword, bool? isActive, int pageIndex = 1, int pageSize = 10);
     Task<List<Warehouse>> GetActiveWarehousesAsync();
     Task<Warehouse> GetByIdAsync(int id);
     Task<Warehouse> GetWithHierarchyAsync(int id);
     Task<Warehouse> CreateWarehouseAsync(CreateWarehouseDto dto);
     Task<Warehouse> UpdateWarehouseAsync(int id, UpdateWarehouseDto dto);
+    Task DeleteWarehouseAsync(int id);
 
     // Zone
     Task<List<Zone>> GetZonesByWarehouseAsync(int warehouseId);
